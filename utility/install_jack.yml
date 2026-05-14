@@ -1,0 +1,33 @@
+---
+- name: Install JACK audio (jackd)
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Ensure apt cache is updated
+      apt:
+        update_cache: yes
+
+    - name: Install JACK packages
+      apt:
+        name:
+          - jackd2
+          - qjackctl        # optional GUI controller
+          - libjack-jackd2-dev
+        state: present
+
+    - name: Allow realtime permissions for audio group
+      lineinfile:
+        path: /etc/security/limits.d/audio.conf
+        create: yes
+        line: "{{ item }}"
+      loop:
+        - "@audio   -  rtprio     95"
+        - "@audio   -  memlock    unlimited"
+
+    - name: Ensure user is in audio group
+      user:
+        name: "{{ ansible_user }}"
+        groups: audio
+        append: yes

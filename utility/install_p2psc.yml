@@ -1,0 +1,10 @@
+# install_p2psc.yml
+- hosts: all
+  tasks:
+    - name: Offline install p2psc from Desktop/BIKES/offline-libraries/p2psc
+      command: pip3 install . --no-index --find-links=../wheelhouse --break-system-packages
+      args:
+        chdir: "/home/{{ ansible_user }}/Desktop/BIKES/offline-libraries/p2psc"
+
+    - name: Verify imports
+      command: python3 -c "import p2psc, pythonosc, zeroconf; print('OK')"

@@ -1,0 +1,35 @@
+---
+- name: Kill all
+  hosts: all
+  become: false
+
+  tasks:
+
+    - name: Kill jackd
+      ansible.builtin.command: killall jackd
+      ignore_errors: yes
+
+    - name: Kill processing
+      ansible.builtin.command: pkill -f processing
+      ignore_errors: yes
+
+    - name: Kill sclang
+      ansible.builtin.command: killall sclang
+      ignore_errors: yes
+
+    - name: Kill spython
+      ansible.builtin.command: killall python3
+      ignore_errors: yes
+
+    - name: Kill vlc
+      ansible.builtin.command: killall vlc
+      ignore_errors: yes
+    
+    - name: Kill scsynth
+      ansible.builtin.command: killall scsynth
+      ignore_errors: yes
+
+    - name: Kill anything using sound devices
+      shell: fuser -k /dev/snd/*
+      ignore_errors: true
+

@@ -1,0 +1,55 @@
+- name: Setup Chrony and Run Timesync
+  hosts: bikes
+  gather_facts: false
+  become: true
+  vars:
+    remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/offline-libraries"
+    bike1_ip: "10.10.10.11"
+
+  tasks:
+    - name: Kill all SuperCollider things
+      command: killall -9 sclang scsynth
+      ignore_errors: true
+
+    - name: Stop systemd-timesyncd
+      systemd:
+        name: systemd-timesyncd
+        state: stopped
+      ignore_errors: true
+
+    - name: Remove systemd-timesyncd
+      apt:
+        name: systemd-timesyncd
+        state: absent
+      ignore_errors: true
+
+    - name: Install chrony from deb
+      apt:
+        deb: "{{ remote_app_dir }}/chrony_4.8-3_arm64.deb"
+
+    - name: Configure bike 1 as chrony server
+      blockinfile:
+        path: /etc/chrony/chrony.conf
+        block: |
+          local stratum 8
+          allow 0/0
+      when: ansible_user == 'bikes1'
+
+    - name: Configure bikes 2-4 to sync from bike 1
+      blockinfile:
+        path: /etc/chrony/chrony.conf
+        block: |
+          server {{ bike1_ip }} iburst
+      when: ansible_user != 'bikes1'
+
+    - name: Restart chrony
+      systemd:
+        name: chrony
+        state: restarted
+        enabled: true
+
+    - name: Pause for chrony to sync
+      pause:
+        seconds: 5
+
+    

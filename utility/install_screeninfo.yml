@@ -1,0 +1,16 @@
+---
+- name: Install screeninfo on Raspberry Pi
+  hosts: all
+  become: true  # use sudo
+  tasks:
+    - name: Ensure pip is installed
+      apt:
+        name: python3-pip
+        state: present
+        update_cache: yes
+
+    - name: Install screeninfo via pip
+      pip:
+        name: screeninfo
+        executable: pip3
+        extra_args: "--break-system-packages"

@@ -1,0 +1,55 @@
+---
+- name: Start P2PSC bike ping chain
+  hosts: bikes
+  gather_facts: false
+  become: true
+  vars:
+    remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/concepts/forwarding"
+    p2psc_dir: "/home/{{ ansible_user }}/.local/bin/p2psc"
+    gui_user: "{{ ansible_user }}"
+  tasks:
+    - name: Kill SuperCollider
+      command: killall -9 sclang scsynth
+      ignore_errors: true
+
+    - name: Kill p2psc
+      command: killall -9 p2psc
+      ignore_errors: true
+
+    - name: Kill Jack
+      command: killall -9 jackd qjackctl
+      ignore_errors: true
+
+    - name: Start JACK
+      become: false
+      shell: |
+        jackd -d alsa -d hw:2,0
+      async: 2592000
+      poll: 0
+
+    - name: Pause for JACK
+      pause:
+        seconds: 2
+
+    - name: Start p2psc
+      become: false
+      shell: |
+        {{ p2psc_dir }}
+      async: 2592000
+      poll: 0
+
+    - name: Pause for p2psc
+      pause:
+        seconds: 2
+
+    - name: Run forwarding.scd
+      become: false
+      shell: |
+        cd "{{ remote_app_dir }}" && \
+          env \
+            HOME="/home/{{ ansible_user }}" \
+            DISPLAY=":0" \
+            XAUTHORITY="/home/{{ ansible_user }}/.Xauthority" \
+            nohup sclang "{{ remote_app_dir }}/forwarding.scd"
+      async: 2592000
+      poll: 0

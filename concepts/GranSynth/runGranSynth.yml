@@ -1,0 +1,125 @@
+---
+- name: Start fully connected Jacktrip Mesh
+  hosts: bikes
+  gather_facts: false
+  become: true
+
+  vars:
+    remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/concepts/GranSynth"
+    p2psc_dir: "/home/{{ ansible_user }}/.local/bin/p2psc"
+    gui_user: "{{ ansible_user }}"
+
+  tasks:
+    - name: Show resolved remote app directory
+      debug:
+        msg: "Host {{ inventory_hostname }} using remote_app_dir={{ remote_app_dir }}"
+
+    - name: Show resolved p2psc directory
+      debug:
+        msg: "Host {{ inventory_hostname }} using p2psc_dir={{ p2psc_dir }}"
+
+    - name: Kill all SuperCollider things
+      command: killall -9 sclang scsynth
+      ignore_errors: true
+
+    - name: Kill p2psc
+      command: killall -9 p2psc
+      ignore_errors: true
+
+    - name: Kill all JackTrip things
+      command: killall -9 jacktrip
+      ignore_errors: true
+
+    - name: Kill all qjackctl
+      command: killall -9 qjackctl
+      ignore_errors: true
+
+    - name: Kill all jackd things
+      command: killall -9 jackd
+      ignore_errors: true
+
+    - name: Kill all python3 things
+      command: killall -9 python3
+      ignore_errors: true
+
+    - name: Start jack
+      become: false
+      shell: |
+        jackd -d alsa -d hw:2,0
+      async: 2592000
+      poll: 0
+
+    - name: Pause briefly
+      pause:
+        seconds: 2
+
+    - name: Start p2psc
+      become: false
+      shell: |
+        {{ p2psc_dir }}
+      async: 2592000
+      poll: 0
+
+    - name: Pause briefly to let p2psc start
+      pause:
+        seconds: 2
+
+    # =========================
+    # RECEIVER NODES (all others)
+    # =========================
+    - name: Launch Python + SC (Receiver nodes)
+      when: inventory_hostname != groups['bikes'][0]
+      block:
+
+        - name: Launch PythonReceiver
+          shell: |
+            cd "{{ remote_app_dir }}" && \
+            sudo -u "{{ gui_user }}" bash -c '
+              DISPLAY=:0 \
+              XAUTHORITY="/home/{{ gui_user }}/.Xauthority" \
+              nohup python3 -u "{{ remote_app_dir }}/PythonReceiver.py" \
+            '
+          async: 2592000
+          poll: 0
+
+        - name: Run GranSynthReceiverForBike.scd
+          become: false
+          shell: |
+            cd "{{ remote_app_dir }}" && \
+            env \
+              HOME="/home/{{ ansible_user }}" \
+              DISPLAY=":0" \
+              XAUTHORITY="/home/{{ ansible_user }}/.Xauthority" \
+              nohup sclang "{{ remote_app_dir }}/GranSynthReceiverForBike.scd" \
+          async: 2592000
+          poll: 0
+
+    # ======================
+    # HOST NODE (first bike)
+    # ======================
+    - name: Launch Python + SC (Host node)
+      when: inventory_hostname == groups['bikes'][0]
+      block:
+
+        - name: Launch PythonHost
+          shell: |
+            cd "{{ remote_app_dir }}" && \
+            sudo -u "{{ gui_user }}" bash -c '
+              DISPLAY=:0 \
+              XAUTHORITY="/home/{{ gui_user }}/.Xauthority" \
+              nohup python3 -u "{{ remote_app_dir }}/PythonHost.py" \
+            '
+          async: 2592000
+          poll: 0
+
+        - name: Run GranSynthHostFinal.scd
+          become: false
+          shell: |
+            cd "{{ remote_app_dir }}" && \
+            env \
+              HOME="/home/{{ ansible_user }}" \
+              DISPLAY=":0" \
+              XAUTHORITY="/home/{{ ansible_user }}/.Xauthority" \
+              nohup sclang "{{ remote_app_dir }}/GranSynthHostFinal.scd" \
+          async: 2592000
+          poll: 0

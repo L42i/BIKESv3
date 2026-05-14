@@ -1,0 +1,21 @@
+---
+- name: Install SuperCollider
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install SuperCollider
+      apt:
+        name:
+          - supercollider
+        state: present
+
+    - name: Install SC3-Plugins
+      apt:
+        name:
+          - sc3-plugins
+        state: present

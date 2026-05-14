@@ -1,0 +1,15 @@
+---
+- name: Install ALSA utilities
+  hosts: all
+  become: true   # Use sudo
+
+  tasks:
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install alsa-utils
+      ansible.builtin.apt:
+        name: alsa-utils
+        state: present

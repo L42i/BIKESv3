@@ -1,0 +1,60 @@
+- name: Play stems in sync
+  hosts: bikes
+  gather_facts: false
+  become: false
+  vars:
+    remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/concepts/timesync"
+
+  tasks:
+    - name: Kill all SuperCollider things
+      command: killall -9 sclang scsynth
+      ignore_errors: true
+
+    - name: Kill p2psc
+      command: killall -9 p2psc
+      ignore_errors: true
+    
+    - name: Kill p2psc
+      command: killall -9 aplay
+      ignore_errors: true
+
+    - name: Kill all JackTrip things
+      command: killall -9 jacktrip
+      ignore_errors: true
+
+    - name: Kill all qjacks
+      command: killall -9 qjackctl
+      ignore_errors: true
+
+    - name: Kill all jackd things
+      command: killall -9 jackd
+      ignore_errors: true
+
+    - name: Kill all python3 things
+      command: killall -9 python3
+      ignore_errors: true
+
+    - name: Kill anything using sound devices
+      shell: fuser -k /dev/snd/*
+      ignore_errors: true
+
+
+    - name: Pause briefly
+      pause:
+        seconds: 2
+
+    - name: Get timestamp from bike 1
+      shell: echo $(( $(date +%s) + 10 ))
+      register: play_at
+      when: ansible_user == 'bikes1'
+      run_once: true
+
+    - name: Play stem at bike 1's timestamp
+      shell: |
+        #!/bin/bash
+        while [ $(date +%s) -lt {{ hostvars['10.10.10.11']['play_at']['stdout'] }} ]; do
+          sleep 0.001
+        done
+        aplay -D hw:2,0 {{ remote_app_dir }}../../media/timesync/1.wav
+      async: 2592000
+      poll: 0

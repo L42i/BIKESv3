@@ -1,0 +1,25 @@
+---
+- name: Install p2psc Quark on all bikes
+  hosts: bikes
+  gather_facts: false
+
+  vars:
+    quark_dest: "/home/{{ ansible_user }}/.local/share/SuperCollider/Extensions"
+
+  tasks:
+
+    - name: Ensure Quark directory exists
+      file:
+        path: "{{ quark_dest }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Copy p2psc Quark to bikes
+      copy:
+        src: ../offline-libraries/p2psc/libs/sclang
+        dest: "{{ quark_dest }}/"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"

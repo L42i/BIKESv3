@@ -1,0 +1,36 @@
+site_name: BIKES
+site_description: Documentation for the BIKES networked sound project
+site_author: Orlando Kenny
+
+theme:
+  name: mkdocs
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: black
+      accent: deep orange
+
+nav:
+  - Concepts:
+      - Forwarding: concepts/Forwarding/index.md
+      - GranSynth: concepts/GranSynth/index.md
+      - LatencyDelay: concepts/LatencyDelay/index.md
+      - Soundscapes: concepts/Soundscapes/index.md
+      - Timesync: concepts/Timesync/index.md
+      - UWB: concepts/Uwb/index.md
+  - Media: media-page/index.md
+  - Utility: utility/index.md
+  - Future: future/index.md
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - fenced_code
+  - tables
+  - attr_list
+  - md_in_html

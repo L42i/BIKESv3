@@ -1,0 +1,12 @@
+---
+
+- name: Install_ssh_key
+  hosts: bikes
+  connection: ssh
+  tasks:
+    - name: Install public SSH key
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ lookup('file', key) }}"
+

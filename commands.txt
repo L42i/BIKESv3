@@ -1,0 +1,13 @@
+ansible-playbook -i ./utility/config/bikes.ini utility/ping.yml
+ansible-playbook -k -i ./utility/config/bikes.ini sync_folder.yml 
+ansible-playbook -k -i ./utility/config/bikes.ini concepts/soundscapes/soundscapes.yml -e soundscape="marine"
+ansible-playbook -i ./utility/config/bikes.ini utility/kill_everything.yml
+
+ansible-playbook -k -i ./utility/config/bikes.ini concepts/Latency_delay/latency.yml
+ansible-playbook -k -i ./utility/config/bikes.ini concepts/GranSynth/runGranSynth.yml
+ansible-playbook -k -i ./utility/config/bikes.ini concepts/forwarding/runForwarding.yml
+ansible-playbook -k -i ./utility/config/bikes.ini concepts/uwb/uwb_shape.yml
+ansible-playbook -k -i ./utility/config/bikes.ini concepts/timesync/timesync.yml
+
+
+ansible-playbook -k -i ./utility/config/bikes.ini  --extra-vars "key=/path/to/your/key.pub" utility/copy_ssh_key.yml
