@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="Orlando Kenny">
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>GranSynth - BIKES</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">BIKES</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Concepts</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../Forwarding/" class="dropdown-item">Forwarding</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">GranSynth</a>
+</li>
+                                    
+<li>
+    <a href="../LatencyDelay/" class="dropdown-item">LatencyDelay</a>
+</li>
+                                    
+<li>
+    <a href="../Soundscapes/" class="dropdown-item">Soundscapes</a>
+</li>
+                                    
+<li>
+    <a href="../Timesync/" class="dropdown-item">Timesync</a>
+</li>
+                                    
+<li>
+    <a href="../Uwb/" class="dropdown-item">UWB</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../../media-page/" class="nav-link">Media</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../../utility/" class="nav-link">Utility</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../../future/" class="nav-link">Future</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../Forwarding/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../LatencyDelay/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#granular-synth" class="nav-link">Granular Synth</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#architecture-overview" class="nav-link">Architecture Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#roles" class="nav-link">Roles</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#components" class="nav-link">Components</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#granular-synthdef-gs" class="nav-link">Granular SynthDef (\gs)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#file-media-layout" class="nav-link">File &amp; Media Layout</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#network-addresses" class="nav-link">Network Addresses</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#running" class="nav-link">Running</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#dependencies" class="nav-link">Dependencies</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="granular-synth">Granular Synth<a class="headerlink" href="#granular-synth" title="Permanent link">&para;</a></h1>
+<p>GranSynth is a networked granular synthesizer spread across four nodes. One node acts as the <strong>host</strong>, controlling chord selection via a fullscreen GUI. The chord state is broadcast over P2PSC to the three <strong>receiver</strong> nodes, each of which plays its own timbre from a different audio sample. Receiver nodes also have their own GUI — a four-button voice pad — that lets the rider select individual chord tones to play locally. All nodes use the same granular SynthDef, pitched in real time by computing the MIDI ratio for each scale degree.</p>
+<hr />
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                     HOST (bikes1)                       │
+│                                                         │
+│  PythonHost.py  ──/chord──▶  GranSynthHostFinal.scd    │
+│  (chord grid UI)              (granular synth + P2PSC)  │
+│                                    │                    │
+│                         P2PSC /remoteChord              │
+│                    ┌────────┬──────┴──────┐             │
+└────────────────────┼────────┼─────────────┼─────────────┘
+                     ▼        ▼             ▼
+              bikes2        bikes3        bikes4
+         ┌──────────────────────────────────────┐
+         │  GranSynthReceiverForBike.scd         │
+         │   ├─ updates chord state             │
+         │   ├─ forwards /remoteChord to        │
+         │   │  PythonReceiver.py (port 57121)  │
+         │   └─ plays note on /localChord       │
+         │                                      │
+         │  PythonReceiver.py                   │
+         │   ├─ shows voice pad UI              │
+         │   └─ sends /localChord on tap        │
+         └──────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="roles">Roles<a class="headerlink" href="#roles" title="Permanent link">&para;</a></h2>
+<h3 id="host-node-bikes1">Host node (bikes1)<a class="headerlink" href="#host-node-bikes1" title="Permanent link">&para;</a></h3>
+<p>Runs <code>PythonHost.py</code> + <code>GranSynthHostFinal.scd</code>. The host is the only node that can change the root note, scale, and chord degree. Its choices are pushed to all other nodes.</p>
+<h3 id="receiver-nodes-bikes24">Receiver nodes (bikes2–4)<a class="headerlink" href="#receiver-nodes-bikes24" title="Permanent link">&para;</a></h3>
+<p>Run <code>PythonReceiver.py</code> + <code>GranSynthReceiverForBike.scd</code>. Each receiver has a fixed timbre (different sample file) and the same granular engine. Riders choose which chord voice to play from a local four-button pad; the chord context (root, scale, degree) arrives passively from the host.</p>
+<hr />
+<h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h2>
+<h3 id="pythonhostpy">PythonHost.py<a class="headerlink" href="#pythonhostpy" title="Permanent link">&para;</a></h3>
+<p>A fullscreen Pygame GUI with three sections:</p>
+<p><strong>Root note buttons (left column)</strong> — 12 buttons, one per chromatic pitch (C through B). Tapping one sets the root of the current chord.</p>
+<p><strong>Scale buttons (right column)</strong> — four buttons: Major, Minor, Dorian, Mixolydian.</p>
+<p><strong>Chord pads (centre grid)</strong> — a 3×2 grid of six pads, one per diatonic scale degree (I–VI). Each pad displays:</p>
+<ul>
+<li>Roman numeral (I–VI) in the top-left corner</li>
+<li>The actual note name in large type at the centre</li>
+<li>The chord quality (maj / min / dim) at the bottom</li>
+<li>A keyboard shortcut number (1–6) in the top-right corner</li>
+</ul>
+<p>Tapping a pad sends <code>/chord [root, scale, degree]</code> to SuperCollider on port 57120. Tapping an already-active pad sends degree <code>0</code> (stop). The scale and root context updates live as the rider changes them, without re-triggering the pad.</p>
+<h3 id="gransynthhostfinalscd">GranSynthHostFinal.scd<a class="headerlink" href="#gransynthhostfinalscd" title="Permanent link">&para;</a></h3>
+<p>SuperCollider script for the host. On boot it:</p>
+<ol>
+<li>Loads <code>media/GranSynth/AtmosphericC2.wav</code> (left channel only) into a buffer.</li>
+<li>Registers the <code>\gs</code> granular SynthDef (see <a href="#granular-synthdef">Granular SynthDef</a> below).</li>
+<li>Connects to P2PSC as node <code>"1"</code>.</li>
+</ol>
+<p><strong><code>/chord</code> OSC handler</strong></p>
+<p>When a <code>/chord [root, scale, degree]</code> message arrives from the local Python GUI:</p>
+<ul>
+<li>If <code>degree &gt; 0</code>: computes the pitch ratio for that scale degree relative to MIDI note 36 (C2), then starts or updates <code>~activeSynth</code> with the new <code>\rate</code>.</li>
+<li>If <code>degree == 0</code>: gates off <code>~activeSynth</code>.</li>
+<li>Broadcasts <code>/remoteChord [root, scale, degree]</code> to nodes <code>"2"</code>, <code>"3"</code>, and <code>"4"</code> via P2PSC.</li>
+</ul>
+<h3 id="pythonreceiverpy">PythonReceiver.py<a class="headerlink" href="#pythonreceiverpy" title="Permanent link">&para;</a></h3>
+<p>A fullscreen Pygame GUI with two sections:</p>
+<p><strong>Status bar (top)</strong> — shows the current root, scale name, and degree received from the host, with a live indicator dot.</p>
+<p><strong>Voice pad (2×2 grid)</strong> — four buttons labelled ROOT, 3RD, 5TH, 7TH. Each displays the actual note name for that chord voice, computed from the current chord context. Tapping a pad:</p>
+<ul>
+<li>Sends <code>/localChord [buttonIdx, 1]</code> to SuperCollider on port 57120.</li>
+<li>If another pad was already active, sends <code>/localChord [prevIdx, 0]</code> first (only one voice at a time).</li>
+</ul>
+<p>The receiver listens on port 57121 for incoming <code>/remoteChord</code> messages from SuperCollider and updates the displayed notes accordingly without triggering any sound itself.</p>
+<h3 id="gransynthreceiverforbikescd">GranSynthReceiverForBike.scd<a class="headerlink" href="#gransynthreceiverforbikescd" title="Permanent link">&para;</a></h3>
+<p>SuperCollider script for receiver nodes. On boot it:</p>
+<ol>
+<li>Detects the node's hostname via <code>whoami</code> and assigns identity, sample file, and root MIDI note:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Hostname</th>
+<th>Node</th>
+<th>Sample file</th>
+<th>Root MIDI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bikes2</td>
+<td>2</td>
+<td><code>BassSoundC1.wav</code></td>
+<td>26 (C1)</td>
+</tr>
+<tr>
+<td>bikes3</td>
+<td>3</td>
+<td><code>StringSound1.wav</code></td>
+<td>60 (C4)</td>
+</tr>
+<tr>
+<td>bikes4</td>
+<td>4</td>
+<td><code>PadSoundC4.wav</code></td>
+<td>60 (C4)</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Loads the node's sample (left channel only) into a buffer.</li>
+<li>Sets <code>~pygameAddr</code> to the local machine's IP on port 57121 (10.10.10.12–14 for nodes 2–4).</li>
+<li>Registers the <code>\gs</code> granular SynthDef.</li>
+<li>Connects to P2PSC under the node's identity.</li>
+</ol>
+<p><strong><code>/remoteChord</code> P2PSC handler</strong></p>
+<p>On receipt, the script:
+- Updates <code>~currentRoot</code>, <code>~currentScale</code>, and <code>~currentDegree</code> in local state — no sound is triggered here.
+- Forwards <code>/remoteChord [root, scale, degree]</code> to the local <code>PythonReceiver.py</code> via direct UDP so the voice pad display updates.</p>
+<p><strong><code>/localChord</code> OSC handler</strong></p>
+<p>When <code>PythonReceiver.py</code> sends <code>/localChord [buttonIdx, isOn]</code>:
+- If <code>isOn == 1</code>: computes the pitch ratio for the button's chord voice (using a <code>[0, 2, 4, 6]</code> voicing offset from <code>~currentDegree</code>), starts or replaces <code>~localSynth</code>.
+- If <code>isOn == 0</code>: gates off <code>~localSynth</code>.</p>
+<hr />
+<h2 id="granular-synthdef-gs">Granular SynthDef (<code>\gs</code>)<a class="headerlink" href="#granular-synthdef-gs" title="Permanent link">&para;</a></h2>
+<p>Shared between host and receiver scripts. Key parameters:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dens</code></td>
+<td>60</td>
+<td>Grain density (grains/sec). Trigger mode: Dust (async) or Impulse (sync), selected by <code>sync</code></td>
+</tr>
+<tr>
+<td><code>dur</code></td>
+<td>0.4</td>
+<td>Grain duration (seconds), modulated by <code>LFNoise1</code> within <code>durRand</code> range</td>
+</tr>
+<tr>
+<td><code>pos</code></td>
+<td>0.1</td>
+<td>Playback start position (0–1) within buffer</td>
+</tr>
+<tr>
+<td><code>posSpeed</code></td>
+<td>0.1</td>
+<td>Speed of <code>Phasor</code> scanning through the buffer</td>
+</tr>
+<tr>
+<td><code>posRand</code></td>
+<td>0.05</td>
+<td>Random scatter added to grain position</td>
+</tr>
+<tr>
+<td><code>rate</code></td>
+<td>1.0</td>
+<td>Playback rate (pitch ratio); set per note</td>
+</tr>
+<tr>
+<td><code>pan</code> / <code>panRand</code></td>
+<td>0 / 0</td>
+<td>Stereo pan centre and random spread</td>
+</tr>
+<tr>
+<td><code>atk</code> / <code>rel</code></td>
+<td>0.5 / 2</td>
+<td>ASR envelope attack and release</td>
+</tr>
+<tr>
+<td><code>amp</code></td>
+<td>0.3</td>
+<td>Output amplitude</td>
+</tr>
+<tr>
+<td><code>grainEnv</code></td>
+<td>-1</td>
+<td>Grain envelope shape (-1 = Hann window)</td>
+</tr>
+</tbody>
+</table>
+<p>All instances are started with density 200, grain duration 0.07 s, and position 0.1.</p>
+<hr />
+<h2 id="file-media-layout">File &amp; Media Layout<a class="headerlink" href="#file-media-layout" title="Permanent link">&para;</a></h2>
+<pre><code>concepts/GranSynth/
+├── GranSynthHostFinal.scd
+├── GranSynthReceiverForBike.scd
+├── PythonHost.py
+├── PythonReceiver.py
+└── runGranSynth.yml
+
+media/GranSynth/
+├── AtmosphericC2.wav     # host timbre
+├── BassSoundC1.wav       # bikes2 timbre
+├── StringSound1.wav      # bikes3 timbre
+└── PadSoundC4.wav        # bikes4 timbre
+</code></pre>
+<hr />
+<h2 id="network-addresses">Network Addresses<a class="headerlink" href="#network-addresses" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th>Hostname</th>
+<th>Python receiver port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bikes2</td>
+<td>10.10.10.12</td>
+<td>57121</td>
+</tr>
+<tr>
+<td>bikes3</td>
+<td>10.10.10.13</td>
+<td>57121</td>
+</tr>
+<tr>
+<td>bikes4</td>
+<td>10.10.10.14</td>
+<td>57121</td>
+</tr>
+</tbody>
+</table>
+<p>SuperCollider on all nodes listens on port 57120. Python receivers listen on 57121.</p>
+<hr />
+<h2 id="running">Running<a class="headerlink" href="#running" title="Permanent link">&para;</a></h2>
+<p>Deploy to all nodes via Ansible:</p>
+<pre><code class="language-bash">ansible-playbook -k -i ./utility/config/bikes.ini concepts/GranSynth/runGranSynth.yml
+</code></pre>
+<p>The playbook automatically runs <code>PythonHost.py</code> + <code>GranSynthHostFinal.scd</code> on the first bike in the <code>bikes</code> group, and <code>PythonReceiver.py</code> + <code>GranSynthReceiverForBike.scd</code> on all others.</p>
+<p>To run manually on a single node:</p>
+<pre><code class="language-bash"># Host
+sclang GranSynthHostFinal.scd &amp;
+python3 PythonHost.py
+
+# Receiver
+sclang GranSynthReceiverForBike.scd &amp;
+python3 PythonReceiver.py
+</code></pre>
+<hr />
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Dependency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audio engine</td>
+<td>SuperCollider (<code>sclang</code>, <code>scsynth</code>)</td>
+</tr>
+<tr>
+<td>Audio routing</td>
+<td>JACK (<code>jackd</code>)</td>
+</tr>
+<tr>
+<td>Network messaging</td>
+<td>P2PSC</td>
+</tr>
+<tr>
+<td>GUI</td>
+<td>Python 3, Pygame, python-osc</td>
+</tr>
+<tr>
+<td>Deployment</td>
+<td>Ansible</td>
+</tr>
+</tbody>
+</table></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
