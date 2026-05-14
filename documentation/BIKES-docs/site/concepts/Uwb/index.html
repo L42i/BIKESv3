@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="Orlando Kenny">
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>UWB - BIKES</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">BIKES</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Concepts</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../Forwarding/" class="dropdown-item">Forwarding</a>
+</li>
+                                    
+<li>
+    <a href="../GranSynth/" class="dropdown-item">GranSynth</a>
+</li>
+                                    
+<li>
+    <a href="../LatencyDelay/" class="dropdown-item">LatencyDelay</a>
+</li>
+                                    
+<li>
+    <a href="../Soundscapes/" class="dropdown-item">Soundscapes</a>
+</li>
+                                    
+<li>
+    <a href="../Timesync/" class="dropdown-item">Timesync</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">UWB</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../../media-page/" class="nav-link">Media</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../../utility/" class="nav-link">Utility</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../../future/" class="nav-link">Future</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../Timesync/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../media-page/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#uwb-shape" class="nav-link">UWB Shape</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#architecture-overview" class="nav-link">Architecture Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#theory" class="nav-link">Theory</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#components" class="nav-link">Components</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#file-media-layout" class="nav-link">File &amp; Media Layout</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#running" class="nav-link">Running</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#dependencies" class="nav-link">Dependencies</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="uwb-shape">UWB Shape<a class="headerlink" href="#uwb-shape" title="Permanent link">&para;</a></h1>
+<p>UWB Shape is the most hardware-intensive concept in the set. Each bike carries an ESP32 microcontroller with a DW1000 Ultra-Wideband radio module. The ESP32s continuously measure real-world distances between every pair of bikes and report those distances over USB serial to the Raspberry Pi. SuperCollider reads the serial stream, builds a live distance matrix, reconstructs the physical shape of the formation in 2D space, and uses proximity between bikes to drive sound — either looping a sample when bikes are close, or delaying and colouring a ping-chain tone based on how far apart they are.</p>
+<p>Two SuperCollider scripts are provided: <code>BIKES_SHAPE.scd</code> is the full networked version with P2PSC, mode switching, and five sound modes. <code>SOLO_VIEW.scd</code> is a standalone single-machine version for testing the UWB serial feed and visualisation without any network.</p>
+<hr />
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<pre><code>┌─────────────────────────────────────────────┐
+│              Each Bike (ESP32)              │
+│                                             │
+│  DW1000 UWB radio                           │
+│    ├─ TWR ranging with other nodes          │
+│    └─ range reports via ESP-NOW broadcast   │
+│                                             │
+│  USB serial → Raspberry Pi (/dev/ttyUSB0)  │
+└─────────────────────────────────────────────┘
+           │ serial: &quot;A -&gt; B: dist&quot;
+           ▼
+┌──────────────────────────────┐
+│      BIKES_SHAPE.scd         │
+│  ├─ distance matrix          │
+│  ├─ 2D layout reconstruction │
+│  ├─ proximity detection      │
+│  ├─ sound playback / looping │
+│  └─ P2PSC ping chain         │
+└──────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="theory">Theory<a class="headerlink" href="#theory" title="Permanent link">&para;</a></h2>
+<p>The core problem the ESP32 firmware solves is: how do four nodes share one radio medium and collectively measure all six pairwise distances, without any central coordinator?</p>
+<p>The answer is a <strong>round-robin scheduler implemented as a distributed state machine</strong>.</p>
+<p><strong>Round-robin scheduling</strong></p>
+<p>The DW1000 can only perform Two-Way Ranging with one other node at a time. With four bikes there are six unique pairs. The firmware pre-computes a fixed pair schedule (0→1, 2→3, 1→2, 3→0, 0→2, 1→3) and steps through it sequentially, one pair per "slot". The ordering is chosen so the same node doesn't act as Tag for multiple consecutive measurements, spreading radio load evenly.</p>
+<p><strong>Distributed state machine</strong></p>
+<p>Rather than one node acting as a central scheduler telling everyone what to do, every node runs the same state machine independently. The state is just two numbers: <code>currentPairIndex</code> (which pair is active right now) and <code>epochCounter</code> (a generation counter that increments each full cycle). From these two numbers, any node can instantly compute its own role — Tag, Anchor, or Idle — without being told:</p>
+<pre><code>if (NODE_ID == currentPairA())  → ROLE_TAG
+if (NODE_ID == currentPairB())  → ROLE_ANCHOR
+otherwise                       → ROLE_IDLE
+</code></pre>
+<p>This means the system has no single point of failure. If any node drops off and comes back, it just needs to learn the current <code>(pairIndex, epoch)</code> to rejoin correctly.</p>
+<p><strong>Staying in sync — ESP-NOW state broadcasts</strong></p>
+<p>The state only needs to be communicated when it changes. But radio environments are lossy, so a single transition broadcast might be missed. Two mechanisms handle this:</p>
+<ul>
+<li>The active Tag <strong>rebroadcasts the current state every 100 ms</strong> (not just on transitions), so any node that was briefly out of range can resync passively without anyone needing to detect the dropout.</li>
+<li>State change packets are sent in a <strong>burst of two</strong> to reduce the chance of both being dropped simultaneously.</li>
+</ul>
+<p>The <code>epochCounter</code> is critical here: it prevents a delayed or replayed old state broadcast from confusing a node that has already moved on. Any incoming state packet with a mismatched epoch is ignored.</p>
+<p><strong>Timeout and restart</strong></p>
+<p>If a pair measurement takes longer than 1500 ms — because the two nodes are too far apart, occluded, or one has crashed — every node independently detects this via a local timer and resets the whole algorithm back to pair 0, epoch 0. This is the watchdog. No coordination is needed for the reset; because every node runs the same timer against the same state, they all time out at approximately the same moment.</p>
+<p>The last known distances are deliberately preserved across a reset (the <code>resetDistanceMatrix()</code> call is commented out in <code>restartWholeAlgorithm()</code>), so a momentary dropout doesn't blank the distance display or lose the layout.</p>
+<hr />
+<h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h2>
+<h3 id="uwb_full_matriximo-esp32-firmware">uwb_full_matrix.imo (ESP32 firmware)<a class="headerlink" href="#uwb_full_matriximo-esp32-firmware" title="Permanent link">&para;</a></h3>
+<p>Arduino sketch flashed to each ESP32. Each unit has a unique <code>NODE_ID</code> (0–3) and UWB hardware address compiled in. The firmware does three things concurrently: UWB ranging, ESP-NOW coordination, and serial reporting.</p>
+<p><strong>UWB ranging — Two-Way Ranging (TWR)</strong></p>
+<p>The DW1000 can only range one pair at a time. The firmware implements a cooperative round-robin scheduler across all six possible node pairs:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Pair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1 → 2</td>
+</tr>
+<tr>
+<td>1</td>
+<td>3 → 4</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2 → 3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4 → 1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1 → 3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2 → 4</td>
+</tr>
+</tbody>
+</table>
+<p>For each pair, the designated Tag node initiates ranging; the designated Anchor node responds; all other nodes idle. The pair ordering is interleaved to avoid keeping any single node as Tag for back-to-back measurements.</p>
+<p><strong>ESP-NOW coordination</strong></p>
+<p>All nodes communicate via WiFi ESP-NOW broadcast (no access point needed). Two message types are used:</p>
+<ul>
+<li><code>MSG_STATE_CHANGE</code> — announces which pair is active and the current epoch counter. The Tag for the current pair rebroadcasts this every 100 ms so any node that dropped out can resync.</li>
+<li><code>MSG_RANGE_REPORT</code> — broadcasts the measured distance so all nodes receive and store every measurement, not just the active pair.</li>
+</ul>
+<p>A 1500 ms watchdog timeout resets the entire algorithm back to pair 0 if any pair stalls (printed to serial as "bottleneck!").</p>
+<p><strong>Serial output</strong></p>
+<p>After each successful range measurement, the firmware prints all known distances to serial at 115200 baud in the format:</p>
+<pre><code>A -&gt; B: dist
+</code></pre>
+<p>where A and B are 1-indexed node numbers and dist is in metres. SuperCollider parses this format directly.</p>
+<p><strong>Hardware</strong></p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>ESP32 Pin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SPI SCK</td>
+<td>18</td>
+</tr>
+<tr>
+<td>SPI MISO</td>
+<td>19</td>
+</tr>
+<tr>
+<td>SPI MOSI</td>
+<td>23</td>
+</tr>
+<tr>
+<td>UWB RST</td>
+<td>27</td>
+</tr>
+<tr>
+<td>UWB IRQ</td>
+<td>34</td>
+</tr>
+<tr>
+<td>UWB SS (CS)</td>
+<td>21</td>
+</tr>
+<tr>
+<td>I2C SDA (OLED)</td>
+<td>4</td>
+</tr>
+<tr>
+<td>I2C SCL (OLED)</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>A 128×64 SSD1306 OLED displays current role, pair, and distances and updates every 500 ms.</p>
+<p><strong>Per-node configuration</strong></p>
+<p>Before flashing, set <code>NODE_ID</code> and <code>MY_ADDR</code> for each unit. The four addresses are:</p>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th>NODE_ID</th>
+<th>MY_ADDR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0</td>
+<td><code>7D:00:22:EA:82:60:3B:90</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td><code>7D:00:22:EA:82:60:3B:91</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>2</td>
+<td><code>7D:00:22:EA:82:60:3B:92</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>3</td>
+<td><code>7D:00:22:EA:82:60:3B:93</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Library modifications</strong></p>
+<p>The DW1000 Arduino library requires three timing constants to be tuned for reliable ranging in this setup. The following lines in <code>DW1000Ranging.h</code> have been changed from their defaults:</p>
+<pre><code class="language-cpp">// Reset period (ms) — CHANGED from default
+#define DEFAULT_RESET_PERIOD 150
+
+// Reply delay (µs) — CHANGED from default
+#define DEFAULT_REPLY_DELAY_TIME 1500
+
+// Timer delay (ms) — CHANGED from default
+#define DEFAULT_TIMER_DELAY 20
+</code></pre>
+<p><code>DEFAULT_RESET_PERIOD</code> controls how long the library waits after a hardware reset before resuming communication. <code>DEFAULT_REPLY_DELAY_TIME</code> sets the turnaround delay between a Tag's poll and an Anchor's response — too short and the Anchor isn't ready; too long and the round-robin slows down. <code>DEFAULT_TIMER_DELAY</code> sets the polling interval of the ranging state machine loop; tightening it from the default reduces measurement latency at the cost of slightly higher CPU usage.</p>
+<p>If you pull a fresh copy of the DW1000 library from upstream, re-apply these three changes before compiling.</p>
+<p><strong>Bundled libraries</strong></p>
+<p>All Arduino libraries required to compile the sketch are included locally in <code>concepts/uwb/libraries/</code> so the project builds without any internet access or Arduino Library Manager setup. This mirrors the offline-first approach used elsewhere in the BIKES stack (e.g. the Chrony <code>.deb</code> in the clock sync setup). The sketch's <code>#include</code> paths resolve against this local folder when compiled with the Arduino IDE or <code>arduino-cli</code> pointing at it as the libraries directory.</p>
+<hr />
+<h3 id="bikes_shapescd-networked">BIKES_SHAPE.scd (networked)<a class="headerlink" href="#bikes_shapescd-networked" title="Permanent link">&para;</a></h3>
+<p>SuperCollider script running on each Raspberry Pi. It shares the ring topology and identity detection of the other networked concepts (<code>whoami</code> → node name and next peer).</p>
+<p><strong>Serial reader</strong></p>
+<p>Opens <code>/dev/ttyUSB0</code> at 115200 baud with RTS/CTS flow control. Reads byte-by-byte into a line buffer; on newline, parses the <code>"A -&gt; B: dist"</code> format and calls <code>~updateDistanceFromSerial.(from, to, distMeters)</code>, which symmetrically updates the 4×4 <code>~distMatrix</code>.</p>
+<p>If the serial port fails to open, the script continues in standalone mode with no distance data.</p>
+<p><strong>2D layout reconstruction</strong></p>
+<p><code>~layoutFromMatrix</code> solves the positions of all four nodes from pairwise distances using trilateration. Node 1 is fixed at the origin; node 2 is placed along the x-axis; node 3 and 4 positions are computed using the law of cosines, with an ambiguity-resolution step for node 4 to pick the correct half-plane. The result is scaled to fit within a normalised ±1 coordinate space and centred. The visual positions update in real time as new distances arrive.</p>
+<p><strong>Distance-to-audio mappings</strong></p>
+<p>Two core mappings drive the audio behaviour:</p>
+<ul>
+<li><code>~distToDelay</code> — maps distance (3.4–90 m) linearly to a forwarding delay (0–10 s). Distances under 3.4 m give zero delay.</li>
+<li><code>~distToFreq</code> — when both neighbours are far (&gt; 5 m), maps the closer leg's distance (5–90 m) to a sine frequency (200–2000 Hz). When either neighbour is within 5 m, locks the frequency at 200 Hz.</li>
+</ul>
+<p><strong>Proximity detection</strong></p>
+<ul>
+<li><code>~isNearNeighbor</code> — true if the next peer in the ring is within <code>~proximityThresh</code> (5 m).</li>
+<li><code>~isNearEither</code> — true if either the next or previous peer is within 5 m.</li>
+</ul>
+<p><strong>Loop management (<code>~updateLoop</code>)</strong></p>
+<p>When any neighbour is within 5 m, a continuous loop synth starts. When both neighbours move beyond 5 m, the loop stops. The loop sound depends on the current mode (see below). In Hertz mode, the loop synth's frequency is updated live as distances change.</p>
+<p><strong>Sound modes</strong></p>
+<p>Modes are broadcast to all nodes via P2PSC <code>/mode</code> and can be switched from any node. Five modes are available:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Button label</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\words</code></td>
+<td>WORDS</td>
+<td>Loops/plays <code>media/uwb/words/&lt;nodeNum&gt;.wav</code></td>
+</tr>
+<tr>
+<td><code>\birds</code></td>
+<td>BIRDS</td>
+<td>Loops/plays <code>media/uwb/birds/&lt;nodeNum&gt;.wav</code></td>
+</tr>
+<tr>
+<td><code>\alphabetSoup</code></td>
+<td>ALPHABET SOUP</td>
+<td>Plays a random letter from <code>media/uwb/alphabet/&lt;A-Z&gt;.wav</code> on each ping; only one letter at a time</td>
+</tr>
+<tr>
+<td><code>\hertz</code></td>
+<td>HERTZ</td>
+<td>Plays/loops a sine tone at a frequency derived from distance</td>
+</tr>
+<tr>
+<td><code>\mute</code></td>
+<td>MUTE</td>
+<td>Silences audio; ping chain continues silently</td>
+</tr>
+</tbody>
+</table>
+<p><strong>P2PSC ping chain</strong></p>
+<p>The same ring-forwarding chain as other concepts: on receiving <code>/ping</code>, the node plays its current sound (or a distance-pitched <code>\bikePing</code> sine if no buffer is loaded), waits for the distance-derived delay, then forwards to the next peer. When near a neighbour, the ping passes through immediately without the delay.</p>
+<p>bikes1 auto-starts the chain after 5 seconds, and runs a watchdog that restarts it if no ping has been seen for 14 seconds.</p>
+<p><strong>SynthDefs</strong></p>
+<table>
+<thead>
+<tr>
+<th>SynthDef</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\bikePing</code></td>
+<td>Percussive sine tone, 0.99 s release</td>
+</tr>
+<tr>
+<td><code>\sampleOnce</code></td>
+<td>One-shot stereo buffer playback</td>
+</tr>
+<tr>
+<td><code>\sampleLoop</code></td>
+<td>Looping stereo buffer with ASR fade</td>
+</tr>
+<tr>
+<td><code>\sineLoop</code></td>
+<td>Continuous sine with <code>lag(0.5)</code> for smooth frequency transitions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>GUI</strong></p>
+<p>A fullscreen SuperCollider window shows:</p>
+<ul>
+<li>A canvas (left, full height) with the four bike nodes drawn as circles at their computed 2D positions. Edges between ring-adjacent nodes are colour-coded green→red by distance. Measured distances in metres are labelled at the midpoint of each edge. The active node (currently forwarding a ping) flashes yellow.</li>
+<li>Five mode buttons on the right: ALPHABET SOUP, BIRDS, WORDS, HERTZ, and MUTE at the bottom.</li>
+</ul>
+<hr />
+<h3 id="solo_viewscd-standalone">SOLO_VIEW.scd (standalone)<a class="headerlink" href="#solo_viewscd-standalone" title="Permanent link">&para;</a></h3>
+<p>A single-machine version for testing the UWB serial feed and visualisation without P2PSC or networked sound. Differences from <code>BIKES_SHAPE.scd</code>:</p>
+<ul>
+<li>No node identity, no P2PSC, no mode broadcasting.</li>
+<li>Three local sound modes: BIRDS, BEES, AFFIRMATIONS (local buttons only, not networked).</li>
+<li>Runs a local ping chain sequencing through slots 1→2→3→4→1, with inter-note wait time mapped from the normalised screen distance between nodes (<code>~minDelay</code> 0.15 s to <code>~maxDelay</code> 1.5 s).</li>
+<li>Each slot plays a fixed sine frequency: 220, 277.18, 329.63, 440 Hz (A3, C#4, E4, A4).</li>
+<li>Same 2D layout reconstruction and serial reader as <code>BIKES_SHAPE.scd</code>.</li>
+</ul>
+<p>Useful for verifying that the ESP32s are ranging correctly before deploying the full network.</p>
+<h3 id="uwb_shapeyml">uwb_shape.yml<a class="headerlink" href="#uwb_shapeyml" title="Permanent link">&para;</a></h3>
+<p>Standard Ansible playbook: kills existing processes, starts JACK and P2PSC, launches <code>BIKES_SHAPE.scd</code> on all nodes, waits for <code>scsynth</code>. No Python GUI is involved — the SuperCollider script opens its own window.</p>
+<hr />
+<h2 id="file-media-layout">File &amp; Media Layout<a class="headerlink" href="#file-media-layout" title="Permanent link">&para;</a></h2>
+<pre><code>concepts/uwb/
+├── BIKES_SHAPE.scd
+├── SOLO_VIEW.scd
+├── /uwb_full_matrix/uwb_full_matrix.ino
+├── uwb_shape.yml
+└── libraries/             # bundled Arduino libraries
+
+media/uwb/
+├── words/
+│   ├── 1.wav … 4.wav      # node-specific voice/word samples
+├── birds/
+│   ├── 1.wav … 4.wav      # node-specific bird sounds
+└── alphabet/
+    ├── A.wav … Z.wav       # one file per letter
+</code></pre>
+<hr />
+<h2 id="running">Running<a class="headerlink" href="#running" title="Permanent link">&para;</a></h2>
+<p><strong>Flash firmware first</strong> — each ESP32 needs its <code>NODE_ID</code> and <code>MY_ADDR</code> set and the sketch compiled and uploaded before deployment. Connect each ESP32 to its Raspberry Pi via USB.</p>
+<p>Deploy the SC scripts via Ansible:</p>
+<pre><code class="language-bash">ansible-playbook -k -i ./utility/config/bikes.ini concepts/uwb/uwb_shape.yml
+</code></pre>
+<p>For standalone testing on a single machine with an ESP32 attached:</p>
+<pre><code class="language-bash">sclang SOLO_VIEW.scd
+</code></pre>
+<hr />
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Dependency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UWB ranging</td>
+<td>DW1000 module (Decawave), <code>DW1000Ranging</code> Arduino library</td>
+</tr>
+<tr>
+<td>Node coordination</td>
+<td>ESP-NOW (built into ESP32 WiFi stack)</td>
+</tr>
+<tr>
+<td>OLED display</td>
+<td>Adafruit SSD1306 + GFX libraries</td>
+</tr>
+<tr>
+<td>Audio engine</td>
+<td>SuperCollider (<code>sclang</code>, <code>scsynth</code>)</td>
+</tr>
+<tr>
+<td>Audio routing</td>
+<td>JACK (<code>jackd</code>)</td>
+</tr>
+<tr>
+<td>Network messaging</td>
+<td>P2PSC</td>
+</tr>
+<tr>
+<td>Deployment</td>
+<td>Ansible</td>
+</tr>
+</tbody>
+</table></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

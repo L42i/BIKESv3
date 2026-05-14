@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Documentation for the BIKES networked sound project">
+        <meta name="author" content="Orlando Kenny">
+        
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>BIKES</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/fontawesome.min.css" rel="stylesheet">
+        <link href="css/brands.min.css" rel="stylesheet">
+        <link href="css/solid.min.css" rel="stylesheet">
+        <link href="css/v4-font-face.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href=".">BIKES</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Concepts</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="concepts/Forwarding/" class="dropdown-item">Forwarding</a>
+</li>
+                                    
+<li>
+    <a href="concepts/GranSynth/" class="dropdown-item">GranSynth</a>
+</li>
+                                    
+<li>
+    <a href="concepts/LatencyDelay/" class="dropdown-item">LatencyDelay</a>
+</li>
+                                    
+<li>
+    <a href="concepts/Soundscapes/" class="dropdown-item">Soundscapes</a>
+</li>
+                                    
+<li>
+    <a href="concepts/Timesync/" class="dropdown-item">Timesync</a>
+</li>
+                                    
+<li>
+    <a href="concepts/Uwb/" class="dropdown-item">UWB</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="media-page/" class="nav-link">Media</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="utility/" class="nav-link">Utility</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="future/" class="nav-link">Future</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#bikes" class="nav-link">BIKES</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#what-it-is" class="nav-link">What It Is</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#repository" class="nav-link">Repository</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#hardware" class="nav-link">Hardware</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#software" class="nav-link">Software</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#network" class="nav-link">Network</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#concepts" class="nav-link">Concepts</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#artistic-context" class="nav-link">Artistic Context</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#publications" class="nav-link">Publications</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#project-structure" class="nav-link">Project Structure</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="bikes">BIKES<a class="headerlink" href="#bikes" title="Permanent link">&para;</a></h1>
+<p><img alt="Streets Alive" src="media/streetsAlive.jpg" /></p>
+<p>BIKES is a moving networked music instrument consisting of four electric cargo bicycles, each equipped with an onboard computer, touchscreen interface, and a battery-powered loudspeaker. Connected through a wireless mesh network, the four bikes form a single distributed instrument capable of both interactive installations and live performances in motion. The project is developed at the Georgia Institute of Technology, School of Music, as a platform for interdisciplinary research spanning music technology, experimental composition, interaction design, and industrial fabrication.</p>
+<hr />
+<h2 id="what-it-is">What It Is<a class="headerlink" href="#what-it-is" title="Permanent link">&para;</a></h2>
+<p>BIKES is both a technical system and an artistic instrument. On the technical side it is a networked cluster of Raspberry Pi computers running SuperCollider, Python, and coordinated via Ansible. On the artistic side it is a spatial sound system designed to engage with urban environments — challenging, complementing, and celebrating the acoustic conditions of the places it moves through.</p>
+<p>A key distinction: BIKES is not a <em>mobile</em> instrument that happens to move between locations. It is a <em>moving</em> instrument. Sound production, spatial perception, and interaction are directly shaped by continuous motion through the environment. The shifting relative positions of the four bikes constantly change how each node's audio mixes for any given listener, making movement itself a compositional parameter.</p>
+<hr />
+<h2 id="repository">Repository<a class="headerlink" href="#repository" title="Permanent link">&para;</a></h2>
+<p>The repository to BIKES lives <a href="https://github.com/L42i/BIKESv3">here</a>! The media folder lives on <a href="https://gtvault.sharepoint.com/:f:/s/BIKES/IgD-9OMGW1cdTaRPDm81t4KgAfLWZ_uXgPvj7-RJBzm9_e8?e=WFoc0C">Teams</a>. After downloading both, the most important thing is that you put the media folder in the root folder of the BIKES repository. The media is kept seperately than the GitHub because GitHub does NOT store large files! </p>
+<p>Add a .gitignore file to the root repository and add the following line. </p>
+<p>/media</p>
+<p>That will keep the media from getting pushed to the GitHub.</p>
+<hr />
+<h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
+<p><img alt="BIKES hardware setup" src="media/bike_diagram.jpg" /></p>
+<p>Each bike is built on an Edison Bicycles electric cargo frame (750W motor, 181 kg payload capacity) with a custom-fabricated wooden rear enclosure housing:</p>
+<ul>
+<li><strong>Raspberry Pi 5</strong> with 10-inch touchscreen, mounted at the handlebars in a 3D-printed enclosure</li>
+<li><strong>Behringer U-PHORIA UMC22</strong> USB audio interface</li>
+<li><strong>Mackie Thrash212</strong> battery-powered loudspeaker (1300W, 12" woofer)</li>
+<li><strong>Ubiquiti UAP-AC-M-US UniFi</strong> mesh router (600 ft outdoor range), connected to the Pi via Ethernet</li>
+<li><strong>ESP32 UWB Pro with Display (DW1000)</strong> ultra wideband sensor for relative distance measurements.</li>
+<li><strong>GPS Module</strong> Currently unused but we have many! </li>
+</ul>
+<p>All components run on onboard batteries, enabling hours of operation without external power — a deliberate design choice for accessibility, sustainability, and deployment to locations unreachable by car.</p>
+<p>A Phase 2 prototype has been designed featuring a custom CNC-fabricated enclosure positioned around the rear wheel to lower the centre of mass (a key safety improvement identified from field testing), with eight 10.5-inch horn tweeters in a square arrangement for omnidirectional projection.</p>
+<hr />
+<h2 id="software">Software<a class="headerlink" href="#software" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Tool</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audio engine</td>
+<td>SuperCollider</td>
+<td>Synthesis, processing, GUIs, OSC communication</td>
+</tr>
+<tr>
+<td>Beat Synchronization (Short Pieces - Use NTP Time Sync instead)</td>
+<td>Ableton Link</td>
+<td>Shared tempo/beat across nodes</td>
+</tr>
+<tr>
+<td>Node communication</td>
+<td>P2PSC + OSC</td>
+<td>Auto-discovery, inter-node message routing</td>
+</tr>
+<tr>
+<td>GUI (installations)</td>
+<td>Python / Pygame</td>
+<td>Touch interfaces for audience interaction</td>
+</tr>
+<tr>
+<td>Deployment</td>
+<td>Ansible</td>
+<td>Remote launch, configuration, maintenance</td>
+</tr>
+<tr>
+<td>Time Synchronization</td>
+<td>Chrony (NTP)</td>
+<td>Clock synchronization for coordinated playback</td>
+</tr>
+</tbody>
+</table>
+<p>SuperCollider runs headless on each Pi with its own server and language instance. Ansible playbooks launch all software simultaneously across all nodes from a single command, eliminating per-node manual setup on site.</p>
+<hr />
+<h2 id="network">Network<a class="headerlink" href="#network" title="Permanent link">&para;</a></h2>
+<p>The network is the instrument. BIKES uses a WiFi mesh — one UniFi router per bike, all interconnected — rather than a centralized router, reducing dropouts and single points of failure during rides. Inter-node communication uses OSC for control and synchronization data; real-time audio is not streamed over the network (each node renders audio locally).</p>
+<p>P2PSC provides a name-based routing layer on top of OSC, so scripts address nodes by name (e.g. <code>"2"</code>) rather than managing IP addresses and ports directly.</p>
+<p>The system can express several distinct network topologies, each with different compositional properties:</p>
+<ul>
+<li><strong>Independent nodes</strong> — each bike plays autonomously; Ansible sets parameters remotely</li>
+<li><strong>Hierarchical</strong> — one leader node broadcasts OSC to followers</li>
+<li><strong>Forwarding</strong> — a message passes sequentially around the ring, each node playing and waiting before passing on</li>
+<li><strong>Synchronized clocks</strong> — Ableton Link aligns tempo and phase across all nodes for distributed rhythmic playback</li>
+</ul>
+<div style="display: flex; gap: 10px;">
+  <img src="media/independentModel.png" style="width: 50%;">
+  <img src="media/forwardingModel.png" style="width: 50%;">
+</div>
+
+<div style="display: flex; gap: 10px;">
+  <img src="media/clientServerModel.png" style="width: 50%;">
+  <img src="media/synClockModel.png" style="width: 50%;">
+</div>
+
+<hr />
+<h2 id="concepts">Concepts<a class="headerlink" href="#concepts" title="Permanent link">&para;</a></h2>
+<p>The software concepts documented here are compositional experiments developed on top of the BIKES infrastructure. Each concept is a self-contained Ansible playbook plus one or more SuperCollider and/or Python scripts, exploring a different interaction model:</p>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Core idea</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="concepts/Forwarding">Forwarding</a></td>
+<td>Ping chain — a tone passes sequentially around the ring (forwarding model)</td>
+</tr>
+<tr>
+<td><a href="concepts/LatencyDelay">Latency Delay</a></td>
+<td>Explores network delay as a perceptual and compositional element (forwarding + client server model)</td>
+</tr>
+<tr>
+<td><a href="concepts/Timesync">Timesync</a></td>
+<td>Coordinated simultaneous playback using Unix timestamps (synchronized clocks model)</td>
+</tr>
+<tr>
+<td><a href="concepts/Soundscapes">Soundscapes</a></td>
+<td>Touch-triggered layered soundscapes following Schafer's Keynote / Signal / Soundmark framework (forwarding + synchronized clocks model)</td>
+</tr>
+<tr>
+<td><a href="concepts/GranSynth">Granular Synth</a></td>
+<td>Distributed granular synthesis with chord control across nodes (client-server model)</td>
+</tr>
+<tr>
+<td><a href="concepts/Uwb">UWB Shape</a></td>
+<td>Real-time physical formation tracking via Ultra-Wideband ranging, driving spatial sound behaviour (forwarding model)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="artistic-context">Artistic Context<a class="headerlink" href="#artistic-context" title="Permanent link">&para;</a></h2>
+<p><img alt="Image" src="media/bikesLaunchpad.jpg" /></p>
+<p>The sound design of BIKES draws on R. Murray Schafer's soundscape framework, distinguishing between Keynote sounds (continuous sonic ground), Signals (foreground events demanding attention), and Soundmarks (sounds tied to the acoustic identity of a place). These categories directly informed the Soundscapes concept and the layered sound design used in public activations.</p>
+<p>BIKES has been deployed in a range of public contexts:</p>
+<ul>
+<li><strong>Georgia Tech Undergraduate Research Symposium</strong> — single-bike durability and UI test</li>
+<li><strong>Launchpad, College of Design</strong> — quadraphonic interactive installation, thousands of visitors</li>
+<li><strong>Inman Park Parade</strong> — four bikes performing along a 2-mile route in motion</li>
+<li><strong>SITE festival, The Goat Farm</strong> — first dedicated distributed soundscape installation</li>
+<li><strong>Atlanta group ride</strong> — two-hour inner-city ride with 30+ participants, in collaboration with Fulton County Arts &amp; Culture, MOBB ATL, and Red Bike and Green, exploring the acoustic and social affordances of Atlanta's urban environment</li>
+<li><strong>Hartsfield-Jackson Atlanta International Airport</strong> — year-long exhibition of the Phase 2 prototype with documentary video and posters</li>
+</ul>
+<hr />
+<h2 id="publications">Publications<a class="headerlink" href="#publications" title="Permanent link">&para;</a></h2>
+<p>The project has been documented in three peer-reviewed papers:</p>
+<ul>
+<li>
+<p>Kenny, Gomez, Sathe, von Coler — <em>"BIKES: A Moving Network Instrument for Music and Sound Art"</em>, IEEE Internet of Sounds, 2025. Initial prototype, hardware/software architecture, network topologies, first activations.</p>
+</li>
+<li>
+<p>Gomez, Decker, Faupel, Pawar, Westerstahl, von Coler — <em>"BIKES: A Mobile Networked Music Instrument in Interdisciplinary Research and Education"</em>, ICMC 2026. Project phases, soundscape compositions, Phase 2 prototype design, airport exhibition, interdisciplinary pedagogy.</p>
+</li>
+<li>
+<p><em>"Sonic Interactions as Situated Urban Practice with BIKES"</em>, NIME 2026. The Atlanta group ride as a form of situated urban practice; a proposed framework for individual, co-present, and environmental scopes of acoustic interaction.</p>
+</li>
+</ul>
+<hr />
+<h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
+<pre><code>BIKES/
+├── sync_folder.yml             # primary deployment script (root)
+├── concepts/                   # compositional experiments
+│   ├── forwarding/
+│   ├── Latency_delay/
+│   ├── timesync/
+│   ├── soundscapes/
+│   ├── GranSynth/
+│   └── uwb/
+├── media/                      # audio and image assets (per concept)
+├── utility/                    # setup and maintenance playbooks
+├── config/                     # Ansible inventory files
+└── offline-libraries/          # bundled packages for offline install
+    ├── p2psc/
+    └── chrony_4.8-3_arm64.deb
+</code></pre></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js"></script>
+        <script src="search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2026-05-14 21:47:05.290716+00:00
+-->

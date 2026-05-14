@@ -25,7 +25,19 @@ Add a .gitignore file to the root repository and add the following line.
 
 /media
 
-That will keep the media from getting pushed to the GitHub.
+That will keep the media from getting pushed to the GitHub. Also, this site is deployed to github pages. make sure you install mkdocs by using 
+
+pip install mkdocs
+
+You can run it locally by going to the BIKES-docs folder in your terminal and typing
+
+mkdocs serve
+
+You can deploy the site to GitHub using the following command from the BIKES-docs folder
+
+mkdocs gh-deploy
+
+
 
 ---
 
