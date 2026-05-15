@@ -19,7 +19,7 @@ A key distinction: BIKES is not a *mobile* instrument that happens to move betwe
 ## Repository
 
 
-The repository to BIKES lives [here](https://github.com/L42i/BIKESv3)! The media folder lives on [Teams](https://gtvault.sharepoint.com/:f:/s/BIKES/IgD-9OMGW1cdTaRPDm81t4KgAfLWZ_uXgPvj7-RJBzm9_e8?e=WFoc0C). After downloading both, the most important thing is that you put the media folder in the root folder of the BIKES repository. The media is kept seperately than the GitHub because GitHub does NOT store large files! 
+The repository to BIKES lives [here](https://github.com/L42i/BIKESv3)! The media folder lives on [Teams](https://gtvault.sharepoint.com/:f:/s/BIKES/IgD-9OMGW1cdTaRPDm81t4KgAfLWZ_uXgPvj7-RJBzm9_e8?e=WFoc0C). Passwords live [here](https://gtvault.sharepoint.com/:b:/s/BIKES/IQDI66z7FxT-TbfPr-E-bvfyAd3J-eNRTQSEC2BgR6Ohi4A?e=LTmR4S). After downloading both, the most important thing is that you put the media folder in the root folder of the BIKES repository. The media is kept seperately than the GitHub because GitHub does NOT store large files! 
 
 Add a .gitignore file to the root repository and add the following line. 
 
@@ -65,14 +65,18 @@ A Phase 2 prototype has been designed featuring a custom CNC-fabricated enclosur
 
 | Layer | Tool | Role |
 |---|---|---|
-| Audio engine | SuperCollider | Synthesis, processing, GUIs, OSC communication |
-| Beat Synchronization (Short Pieces - Use NTP Time Sync instead) | Ableton Link | Shared tempo/beat across nodes |
-| Node communication | P2PSC + OSC | Auto-discovery, inter-node message routing |
+| Audio engine | (SuperCollider)[http://supercollider.github.io] | Synthesis, processing, GUIs, OSC communication |
+| Beat Synchronization (Short Pieces - Use NTP Time Sync instead) | (Ableton Link)[https://www.ableton.com/en/link/] | Shared tempo/beat across nodes |
+| Node communication | (P2PSC)[https://github.com/l42i/p2psc] + OSC | Auto-discovery, inter-node message routing |
 | GUI (installations) | Python / Pygame | Touch interfaces for audience interaction |
-| Deployment | Ansible | Remote launch, configuration, maintenance |
-| Time Synchronization | Chrony (NTP) | Clock synchronization for coordinated playback |
+| Deployment | (Ansible)[https://docs.ansible.com] | Remote launch, configuration, maintenance |
+| Time Synchronization | (Chrony (NTP))[https://chrony-project.org] | Clock synchronization for coordinated playback |
 
 SuperCollider runs headless on each Pi with its own server and language instance. Ansible playbooks launch all software simultaneously across all nodes from a single command, eliminating per-node manual setup on site.
+
+NOTE - In order to access the UniFi network settings you'll need to download the UniFi desktop app. The logins are saved in passwords. 
+
+Also, you will need to have ansible installed on the host computer to run scripts and more. Please make sure that is installed as well. 
 
 ---
 
