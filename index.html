@@ -152,10 +152,15 @@
 <p>A key distinction: BIKES is not a <em>mobile</em> instrument that happens to move between locations. It is a <em>moving</em> instrument. Sound production, spatial perception, and interaction are directly shaped by continuous motion through the environment. The shifting relative positions of the four bikes constantly change how each node's audio mixes for any given listener, making movement itself a compositional parameter.</p>
 <hr />
 <h2 id="repository">Repository<a class="headerlink" href="#repository" title="Permanent link">&para;</a></h2>
-<p>The repository to BIKES lives <a href="https://github.com/L42i/BIKESv3">here</a>! The media folder lives on <a href="https://gtvault.sharepoint.com/:f:/s/BIKES/IgD-9OMGW1cdTaRPDm81t4KgAfLWZ_uXgPvj7-RJBzm9_e8?e=WFoc0C">Teams</a>. After downloading both, the most important thing is that you put the media folder in the root folder of the BIKES repository. The media is kept seperately than the GitHub because GitHub does NOT store large files! </p>
+<p>The repository to BIKES lives <a href="https://github.com/L42i/BIKESv3">here</a>! The media folder lives on <a href="https://gtvault.sharepoint.com/:f:/s/BIKES/IgD-9OMGW1cdTaRPDm81t4KgAfLWZ_uXgPvj7-RJBzm9_e8?e=WFoc0C">Teams</a>. Passwords live <a href="https://gtvault.sharepoint.com/:b:/s/BIKES/IQDI66z7FxT-TbfPr-E-bvfyAd3J-eNRTQSEC2BgR6Ohi4A?e=LTmR4S">here</a>. After downloading both, the most important thing is that you put the media folder in the root folder of the BIKES repository. The media is kept seperately than the GitHub because GitHub does NOT store large files! </p>
 <p>Add a .gitignore file to the root repository and add the following line. </p>
 <p>/media</p>
-<p>That will keep the media from getting pushed to the GitHub.</p>
+<p>That will keep the media from getting pushed to the GitHub. Also, this site is deployed to github pages. make sure you install mkdocs by using </p>
+<p>pip install mkdocs</p>
+<p>You can run it locally by going to the BIKES-docs folder in your terminal and typing</p>
+<p>mkdocs serve</p>
+<p>You can deploy the site to GitHub using the following command from the BIKES-docs folder</p>
+<p>mkdocs gh-deploy</p>
 <hr />
 <h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
 <p><img alt="BIKES hardware setup" src="media/bike_diagram.jpg" /></p>
@@ -183,17 +188,17 @@
 <tbody>
 <tr>
 <td>Audio engine</td>
-<td>SuperCollider</td>
+<td>(SuperCollider)[http://supercollider.github.io]</td>
 <td>Synthesis, processing, GUIs, OSC communication</td>
 </tr>
 <tr>
 <td>Beat Synchronization (Short Pieces - Use NTP Time Sync instead)</td>
-<td>Ableton Link</td>
+<td>(Ableton Link)[https://www.ableton.com/en/link/]</td>
 <td>Shared tempo/beat across nodes</td>
 </tr>
 <tr>
 <td>Node communication</td>
-<td>P2PSC + OSC</td>
+<td>(P2PSC)[https://github.com/l42i/p2psc] + OSC</td>
 <td>Auto-discovery, inter-node message routing</td>
 </tr>
 <tr>
@@ -203,17 +208,19 @@
 </tr>
 <tr>
 <td>Deployment</td>
-<td>Ansible</td>
+<td>(Ansible)[https://docs.ansible.com]</td>
 <td>Remote launch, configuration, maintenance</td>
 </tr>
 <tr>
 <td>Time Synchronization</td>
-<td>Chrony (NTP)</td>
+<td>(Chrony (NTP))[https://chrony-project.org]</td>
 <td>Clock synchronization for coordinated playback</td>
 </tr>
 </tbody>
 </table>
 <p>SuperCollider runs headless on each Pi with its own server and language instance. Ansible playbooks launch all software simultaneously across all nodes from a single command, eliminating per-node manual setup on site.</p>
+<p>NOTE - In order to access the UniFi network settings you'll need to download the UniFi desktop app. The logins are saved in passwords. </p>
+<p>Also, you will need to have ansible installed on the host computer to run scripts and more. Please make sure that is installed as well. </p>
 <hr />
 <h2 id="network">Network<a class="headerlink" href="#network" title="Permanent link">&para;</a></h2>
 <p>The network is the instrument. BIKES uses a WiFi mesh — one UniFi router per bike, all interconnected — rather than a centralized router, reducing dropouts and single points of failure during rides. Inter-node communication uses OSC for control and synchronization data; real-time audio is not streamed over the network (each node renders audio locally).</p>
@@ -398,5 +405,5 @@
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-05-14 21:47:05.290716+00:00
+Build Date UTC : 2026-05-15 10:02:07.378648+00:00
 -->
