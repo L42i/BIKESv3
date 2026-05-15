@@ -65,12 +65,12 @@ A Phase 2 prototype has been designed featuring a custom CNC-fabricated enclosur
 
 | Layer | Tool | Role |
 |---|---|---|
-| Audio engine | (SuperCollider)[http://supercollider.github.io] | Synthesis, processing, GUIs, OSC communication |
-| Beat Synchronization (Short Pieces - Use NTP Time Sync instead) | (Ableton Link)[https://www.ableton.com/en/link/] | Shared tempo/beat across nodes |
-| Node communication | (P2PSC)[https://github.com/l42i/p2psc] + OSC | Auto-discovery, inter-node message routing |
+| Audio engine | [SuperCollider](http://supercollider.github.io) | Synthesis, processing, GUIs, OSC communication |
+| Beat Synchronization (Short Pieces - Use NTP Time Sync instead) | [Ableton Link](https://www.ableton.com/en/link/) | Shared tempo/beat across nodes |
+| Node communication | [P2PSC](https://github.com/l42i/p2psc) + OSC | Auto-discovery, inter-node message routing |
 | GUI (installations) | Python / Pygame | Touch interfaces for audience interaction |
-| Deployment | (Ansible)[https://docs.ansible.com] | Remote launch, configuration, maintenance |
-| Time Synchronization | (Chrony (NTP))[https://chrony-project.org] | Clock synchronization for coordinated playback |
+| Deployment | [Ansible](https://docs.ansible.com) | Remote launch, configuration, maintenance |
+| Time Synchronization | [Chrony (NTP)](https://chrony-project.org) | Clock synchronization for coordinated playback |
 
 SuperCollider runs headless on each Pi with its own server and language instance. Ansible playbooks launch all software simultaneously across all nodes from a single command, eliminating per-node manual setup on site.
 
