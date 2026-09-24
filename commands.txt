@@ -10,7 +10,13 @@ ansible-playbook -k -i ./utility/config/bikes.ini concepts/uwb/uwb_shape.yml
 ansible-playbook -k -i ./utility/config/bikes.ini concepts/timesync/timesync.yml
 
 
-ansible-playbook -k -i ./utility/config/bikes.ini  --extra-vars "key=/path/to/your/key.pub" utility/copy_ssh_key.yml
+# macOS/Linux/WSL: run once on a new computer to create its own key pair:
+mkdir -p "$HOME/.ssh"
+test -f "$HOME/.ssh/id_ed25519" || ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519"
 
+# Enter the Pi SSH password when prompted:
+ansible-playbook -k -K -i ./utility/config/bikes.ini \
+  -e "key=$HOME/.ssh/id_ed25519.pub" \
+  utility/copy_ssh_key.yml
 
 ansible
