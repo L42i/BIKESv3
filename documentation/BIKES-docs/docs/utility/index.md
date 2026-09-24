@@ -6,7 +6,7 @@ THIS IS THE MOST IMPORTANT ONE
 This is the primary deployment script and lives in the **root of the BIKES project directory**, not in `utility/`. Run it whenever you want to push your local working copy of the entire project to all bikes. It rsyncs the current directory (`./`) to `~/Desktop/BIKES/` on every host with `delete: true`, meaning the remote is kept as an exact mirror of the local — files removed locally are removed remotely too.
 
 ```bash
-ansible-playbook -k -i ./utility/config/bikes.ini  --extra-vars "key=/path/to/your/key.pub" utility/copy_ssh_key.yml
+ansible-playbook -k -K -i ./utility/config/bikes.ini --extra-vars "key=$HOME/.ssh/id_ed25519.pub" utility/copy_ssh_key.yml
 ```
 `times: false` is set so that file timestamps are not synced, which avoids unnecessary re-transfers on filesystems where clock skew between the controller and the Pis would otherwise mark everything as changed. Archive mode is on for everything else (permissions, ownership, recursion).
 
@@ -21,7 +21,16 @@ A collection of Ansible playbooks for setting up, maintaining, and operating the
 ## Setup & Installation
 
 ### copy_ssh_key.yml
-Installs a public SSH key for the `student` user via `authorized_key`. Pass the key path at runtime with `-e key=/path/to/key.pub`. Run this once to enable passwordless Ansible access to all hosts.
+Enables SSH password authentication and installs a public SSH key for each inventory user via `authorized_key`. Run with `-k` for the SSH password and `-K` if sudo requests the same password. Set the key path with `-e key=/path/to/key.pub`. Run this once from a machine that already has access; afterward new computers can connect with the Pi password and install their own key.
+
+On macOS, run the command from Terminal. On Windows, use WSL2 with an Ubuntu distribution as the Ansible controller; native PowerShell and Command Prompt are not supported Ansible controller environments. In WSL, install the prerequisites and clone this repository into the WSL filesystem:
+
+```bash
+sudo apt update
+sudo apt install -y ansible openssh-client
+```
+
+Then run the key-generation and `copy_ssh_key.yml` commands from `commands.txt` inside WSL. The generated key belongs to that WSL environment and is the key installed on the Pis.
 
 ### install_supercollider.yml
 Installs `supercollider` and `sc3-plugins` via apt on all hosts.

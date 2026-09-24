@@ -205,20 +205,20 @@ s.waitForBoot({
         var path;
         ~freeAllBuffers.();
 
-        path = "media/uwb/words/" ++ ~myName ++ ".wav";
+        path = "../../media/uwb/words/" ++ ~myName ++ ".wav";
         if(File.exists(path)) {
             ~wordsBuf = Buffer.read(s, path);
             ("Loaded: " ++ path).postln;
         } { ("WARNING: not found: " ++ path).postln };
 
-        path = "media/uwb/birds/" ++ ~myName ++ ".wav";
+        path = "../../media/uwb/birds/" ++ ~myName ++ ".wav";
         if(File.exists(path)) {
             ~birdsBuf = Buffer.read(s, path);
             ("Loaded: " ++ path).postln;
         } { ("WARNING: not found: " ++ path).postln };
 
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ".do { |char, i|
-            path = "media/uwb/alphabet/" ++ char.asString ++ ".wav";
+            path = "../../media/uwb/alphabet/" ++ char.asString ++ ".wav";
             if(File.exists(path)) {
                 ~alphabetBufs[i] = Buffer.read(s, path);
                 ("Loaded: " ++ path).postln;

@@ -5,7 +5,7 @@
   become: true
 
   vars:
-    soundscape: "rainforest"
+    soundscape: "marine"
     remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/concepts/soundscapes"
     p2psc_dir: "/home/{{ ansible_user }}/.local/bin/p2psc"
     gui_user: "{{ ansible_user }}"

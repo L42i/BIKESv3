@@ -3,10 +3,45 @@
 - name: Install_ssh_key
   hosts: bikes
   connection: ssh
+  become: true
   tasks:
+    - name: Enable password authentication in cloud-init override
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config.d/50-cloud-init.conf
+        regexp: '^\s*#?\s*PasswordAuthentication\s+'
+        line: PasswordAuthentication yes
+        create: true
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart SSH
+
+    - name: Enable password authentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^\s*#?\s*PasswordAuthentication\s+'
+        line: PasswordAuthentication yes
+        insertafter: '^\s*#?\s*PasswordAuthentication\s+'
+      notify: Restart SSH
+
+    - name: Remove ineffective password authentication drop-in
+      ansible.builtin.file:
+        path: /etc/ssh/sshd_config.d/99-bikes-password-auth.conf
+        state: absent
+
+    - name: Validate SSH configuration
+      ansible.builtin.command: sshd -t
+      changed_when: false
+
     - name: Install public SSH key
       ansible.posix.authorized_key:
         user: "{{ ansible_user }}"
         state: present
         key: "{{ lookup('file', key) }}"
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
 
