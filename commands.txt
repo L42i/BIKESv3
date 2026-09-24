@@ -11,3 +11,6 @@ ansible-playbook -k -i ./utility/config/bikes.ini concepts/timesync/timesync.yml
 
 
 ansible-playbook -k -i ./utility/config/bikes.ini  --extra-vars "key=/path/to/your/key.pub" utility/copy_ssh_key.yml
+
+
+ansible

@@ -8,3 +8,6 @@ ansible-playbook -i ./utility/config/bikes.ini utility/ping.yml
 ansible-playbook -k -i ./utility/config/bikes.ini sync_folder.yml 
 ansible-playbook -k -i ./utility/config/bikes.ini concepts/soundscapes/soundscapes.yml -e soundscape="marine"
 ansible-playbook -i ./utility/config/bikes.ini utility/kill_everything.yml
+
+test
+
