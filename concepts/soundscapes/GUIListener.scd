@@ -445,7 +445,7 @@ s.waitForBoot({
 			}.();
 
 		{
-			soundFile2 = "media/samples" +/+ ~soundscape +/+ result[0] +/+ result[1] ++ ".wav";
+			soundFile2 = "../../media/soundscapes/samples" +/+ ~soundscape +/+ result[0] +/+ result[1] ++ ".wav";
 
 			}.();
 

@@ -36,7 +36,7 @@ print(os.path.join(base, "../../media/soundscapes/images/" + soundscape + "Pixel
 background = pygame.image.load(os.path.join(base, "../../media/soundscapes/images/" + soundscape + "Pixel.jpg")).convert()
 background = pygame.transform.scale(background, screen_size)
 
-overlay = pygame.image.load(os.path.join(base, "../../media/soundscapes/images" + soundscape + ".jpg")).convert()
+overlay = pygame.image.load(os.path.join(base, "../../media/soundscapes/images/" + soundscape + ".jpg")).convert()
 overlay = pygame.transform.scale(overlay, screen_size)
 
 # Track active swaps: dict {(gx, gy): end_time}
