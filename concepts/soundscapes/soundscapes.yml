@@ -99,3 +99,15 @@
           nohup python3 "{{ remote_app_dir }}/PixelGUI.py" "{{ soundscape }}" &
       async: 2592000
       poll: 0
+
+    # Camera: runs on every bike; exits quietly where no IMX500 is attached.
+    # Started last because the kill steps above stop every python3 process.
+    # Set camera_facing per bike in utility/config/bikes.ini (front/left/right/back or degrees).
+    - name: Launch camera service
+      become: false
+      shell: |
+        cd "/home/{{ ansible_user }}/Desktop/BIKES/concepts/camera" && \
+        nohup python3 camera_osc.py --facing "{{ camera_facing | default('left') }}" \
+          > "/home/{{ ansible_user }}/Desktop/camera_log.txt" 2>&1 &
+      async: 2592000
+      poll: 0
