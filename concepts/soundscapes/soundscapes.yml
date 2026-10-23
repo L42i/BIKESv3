@@ -103,11 +103,12 @@
     # Camera: runs on every bike; exits quietly where no IMX500 is attached.
     # Started last because the kill steps above stop every python3 process.
     # Set camera_facing per bike in utility/config/bikes.ini (front/left/right/back or degrees).
+    # Extra options, e.g. to stream to a laptop: -e camera_args="--send 10.10.10.50:57120 --stream-port 8000"
     - name: Launch camera service
       become: false
       shell: |
         cd "/home/{{ ansible_user }}/Desktop/BIKES/concepts/camera" && \
-        nohup python3 camera_osc.py --facing "{{ camera_facing | default('left') }}" \
+        nohup python3 camera_osc.py --facing "{{ camera_facing | default('left') }}" {{ camera_args | default('') }} \
           > "/home/{{ ansible_user }}/Desktop/camera_log.txt" 2>&1 &
       async: 2592000
       poll: 0

@@ -16,6 +16,7 @@ theme:
 
 nav:
   - Concepts:
+      - Camera: concepts/Camera/index.md
       - Forwarding: concepts/Forwarding/index.md
       - GranSynth: concepts/GranSynth/index.md
       - LatencyDelay: concepts/LatencyDelay/index.md

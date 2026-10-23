@@ -1,0 +1,5 @@
+# Large audio/image assets live on Teams, not GitHub (see the docs)
+/media/
+
+# Python bytecode
+__pycache__/

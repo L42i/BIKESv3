@@ -23,7 +23,8 @@
 
 (
 ~camPeers = ["1", "2", "3", "4"];
-~camHost = "whoami".unixCmdGetStdOut.select(_.isDecDigit);
+// bike number from the user name (bikes1 -> "1"); on a laptop set ~camHost = "1" before loading
+~camHost = ~camHost ?? { "whoami".unixCmdGetStdOut.select(_.isDecDigit) };
 ~camNodes = ();
 ~camP2P = nil;
 ~camVerbose = false;
