@@ -16,7 +16,8 @@ azimuth: degrees relative to the bike, 0 = straight ahead, -90 = left, +90 = rig
 closeness: sqrt of the box's share of the frame (0..1), a rough "how close".
 passRate: confirmed objects entering view per minute (~20 s smoothing).
 
-Usage: python3 camera_osc.py --facing left [--stream-port 8000]
+Usage: python3 camera_osc.py --facing left [--stream-port 8000] [--send LAPTOP_IP:57120]
+See README.md in this folder for the full guide.
 """
 import argparse
 import getpass
@@ -57,6 +58,8 @@ def parse_args():
     ap.add_argument("--node", help="node id sent with every message (default: digit from user name bikesN)")
     ap.add_argument("--osc-host", default="127.0.0.1")
     ap.add_argument("--osc-port", type=int, default=57120)
+    ap.add_argument("--send", action="append", default=[], metavar="HOST:PORT",
+                    help="also send every message here, e.g. a teammate's laptop 10.10.10.50:57120 (repeatable)")
     ap.add_argument("--threshold", type=float, default=0.55, help="minimum detection score")
     ap.add_argument("--categories", default=",".join(STATE_CATEGORIES),
                     help="categories that generate events (person,vehicle,bike,animal,other)")
@@ -84,6 +87,13 @@ def resolve_node(value):
         return str(value)
     m = re.search(r"(\d+)$", getpass.getuser())
     return m.group(1) if m else "0"
+
+
+def parse_destination(value):
+    host, sep, port = value.rpartition(":")
+    if not sep or not host or not port.isdigit():
+        sys.exit(f"--send expects HOST:PORT, got {value!r}")
+    return host, int(port)
 
 
 def wrap_degrees(a):
@@ -283,10 +293,15 @@ def main():
     with open(LABELS_JSON) as f:
         labels = json.load(f)["imx500_object_detection"]["classes"]
 
-    osc = SimpleUDPClient(args.osc_host, args.osc_port)
+    destinations = [(args.osc_host, args.osc_port)] + [parse_destination(d) for d in args.send]
+    clients = [SimpleUDPClient(host, port) for host, port in destinations]
 
     def emit(path, *values):
-        osc.send_message(path, [node, *values])
+        for client in clients:
+            try:
+                client.send_message(path, [node, *values])
+            except OSError:
+                pass  # a laptop that left the network must not stop the bike's own sound
         if args.verbose:
             print(path, node, *values, flush=True)
 
@@ -301,7 +316,7 @@ def main():
     picam2.start(config)
     signal.signal(signal.SIGTERM, lambda *a: sys.exit(0))
     print(f"[camera node {node}] facing {args.facing} ({args.facing_deg:+.0f} deg), "
-          f"sending OSC to {args.osc_host}:{args.osc_port}"
+          f"sending OSC to {', '.join(f'{h}:{p}' for h, p in destinations)}"
           + (f", debug stream on :{args.stream_port}" if stream else ""), flush=True)
 
     state_period = 1.0 / args.state_hz
