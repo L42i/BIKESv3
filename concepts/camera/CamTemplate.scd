@@ -1,4 +1,4 @@
-// CamTemplate.scd — starting point for a camera-reactive sound effect.
+// CamTemplate.scd: starting point for a camera-reactive sound effect.
 //
 // Runs anywhere: your laptop (with fake_camera.py or a live bike camera) or a bike.
 // Every sound is synthesized, so no media files are needed.

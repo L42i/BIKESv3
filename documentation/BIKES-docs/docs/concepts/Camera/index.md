@@ -2,7 +2,7 @@
 
 Each bike is getting a Raspberry Pi AI Camera (Sony IMX500). The camera runs object detection on the sensor itself, so the Pi only receives what was seen: people, vehicles, bicycles, animals, where they are relative to the bike, and roughly how close. `camera_osc.py` turns this into OSC messages that any concept can use to react to its surroundings.
 
-Only **bikes1** has a camera so far, mounted facing the bike's **left** side. The code runs on every bike and does nothing where no camera is attached.
+Only bikes1 has a camera so far, mounted facing the bike's left side. The code runs on every bike and does nothing where no camera is attached.
 
 The full guide for writing camera-reactive sounds, including how to work on your laptop without a bike, is in [`concepts/camera/README.md`](https://github.com/L42i/BIKESv3/tree/main/concepts/camera).
 
@@ -13,14 +13,14 @@ The full guide for writing camera-reactive sounds, including how to work on your
 ```
 IMX500 camera (detection on the sensor)
    │
-   ▼
-camera_osc.py ── /cam/* OSC ──▶ sclang on the same bike (port 57120)
+   v
+camera_osc.py ── /cam/* OSC ──> sclang on the same bike (port 57120)
    │                              │  CamListener.scd: state + hooks
    │                              │  concept reactions (e.g. CamReactions.scd)
-   │                              └── P2PSC /camEvent, /camState ──▶ other bikes
+   │                              └── P2PSC /camEvent, /camState ──> other bikes
    │
-   ├── optional --send ──▶ teammates' laptops
-   └── optional --stream-port ──▶ live view in a browser
+   ├── optional --send ──> teammates' laptops
+   └── optional --stream-port ──> live view in a browser
 ```
 
 ---
@@ -36,9 +36,9 @@ Every message starts with the number of the bike whose camera saw it.
 | `/cam/approach` | node, id, label, category, azimuth, closeness, growth | an object is coming closer quickly |
 | `/cam/exit` | node, id, label, category, duration | an object has left |
 
-- **azimuth** is relative to the bike: 0 ahead, −90 left, +90 right, ±180 behind. It comes from the camera's mounting direction (`camera_facing` in `utility/config/bikes.ini`), so sounds keep working if the camera is moved.
-- **closeness** is 0–1, the square root of how much of the picture the object fills.
-- **passRate** is objects entering view per minute; while riding it follows how busy the street is.
+- `azimuth` is relative to the bike: 0 ahead, -90 left, +90 right, 180 or -180 behind. It comes from the camera's mounting direction (`camera_facing` in `utility/config/bikes.ini`), so sounds keep working if the camera is moved.
+- `closeness` runs from 0 to 1 and is the square root of how much of the picture the object fills.
+- `passRate` is objects entering view per minute; while riding it follows how busy the street is.
 
 ---
 
@@ -56,7 +56,7 @@ Every message starts with the number of the bike whose camera saw it.
 
 ## Used by
 
-**Soundscapes**: the base track's level and brightness follow how busy it is around the bikes; people, vehicles, bicycles and animals trigger theme samples; someone walking up to a bike sends a ripple around the ring. See [Soundscapes](../Soundscapes/index.md).
+In Soundscapes, the base track's level and brightness follow how busy it is around the bikes. People, vehicles, bicycles and animals trigger theme samples; someone walking up to a bike sends a ripple around the ring. See [Soundscapes](../Soundscapes/index.md).
 
 ---
 

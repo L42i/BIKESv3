@@ -1,10 +1,10 @@
 # BIKES Camera
 
-The bikes' Raspberry Pi AI Camera (IMX500) as an input for sound. The camera detects people, vehicles, bicycles and animals on the sensor itself, and `camera_osc.py` turns that into a few OSC messages that any SuperCollider script (or Python, Max, Pd, ...) can react to.
+This folder uses the bikes' Raspberry Pi AI Camera (IMX500) as an input for sound. The camera detects people, vehicles, bicycles and animals on the sensor itself, and `camera_osc.py` turns that into a few OSC messages that any SuperCollider script (or Python, Max, Pd, ...) can react to.
 
 You don't need a bike to work on camera-reactive sounds: `fake_camera.py` sends the same messages from your laptop, and `CamTemplate.scd` is a ready-to-run starting point.
 
-**Status:** Only **bikes1** has a camera so far; it faces the bike's **left** side. Every bike will get one, and the mounting direction may still change, so write sounds that work for any direction (use the `category` and `azimuth` fields, see below).
+Only bikes1 has a camera so far, and it faces the bike's left side. Every bike will get one, and the mounting direction may still change, so write sounds that work for any direction (use the `category` and `azimuth` fields, see below).
 
 ## Files
 
@@ -90,13 +90,13 @@ Every message starts with the bike number (as a string) that saw it.
 | `/cam/approach` | node, id, label, category, azimuth, closeness, growth | an object is getting bigger quickly (coming closer) |
 | `/cam/exit` | node, id, label, category, duration | an object has been gone for 0.6 s |
 
-- **label**: the detector's class name: `person`, `bicycle`, `car`, `motorcycle`, `bus`, `truck`, `dog`, ... (80 everyday object types).
-- **category**: the label grouped for sound design: `person`, `vehicle` (car, motorcycle, bus, truck, train, boat, airplane), `bike` (bicycle), `animal`, or `other` (only sent if enabled with `--categories`).
-- **azimuth**: direction relative to the bike in degrees. 0 is straight ahead, −90 left, +90 right, ±180 behind. With the camera facing left, objects range from about −123 (left and behind) to −57 (left and ahead). Use this rather than "left/right of the picture", so your sound still makes sense if the camera is moved.
-- **closeness**: square root of how much of the picture the object fills, 0–1. Roughly: 0.1 is far away, 0.5 is a few metres, 0.8+ is right in front of the lens.
-- **counts in `/cam/state`**: smoothed numbers of objects currently in view (so they can be fractional, like 1.6).
-- **passRate**: objects entering view per minute, smoothed over about 20 s. While riding, this follows how busy the street is.
-- **id**: the same object keeps its id from enter to exit.
+- `label`: the detector's class name: `person`, `bicycle`, `car`, `motorcycle`, `bus`, `truck`, `dog`, ... (80 everyday object types).
+- `category`: the label grouped for sound design: `person`, `vehicle` (car, motorcycle, bus, truck, train, boat, airplane), `bike` (bicycle), `animal`, or `other` (only sent if enabled with `--categories`).
+- `azimuth`: direction relative to the bike in degrees. 0 is straight ahead, -90 left, +90 right, 180 or -180 behind. With the camera facing left, objects range from about -123 (left and behind) to -57 (left and ahead). Base your sound on azimuth instead of the position in the picture, so it still makes sense if the camera is moved.
+- `closeness`: square root of how much of the picture the object fills, from 0 to 1. Roughly: 0.1 is far away, 0.5 is a few metres, 0.8+ is right in front of the lens.
+- The counts in `/cam/state` are smoothed numbers of objects currently in view (so they can be fractional, like 1.6).
+- `passRate`: objects entering view per minute, smoothed over about 20 s. While riding, this follows how busy the street is.
+- `id`: the same object keeps its id from enter to exit.
 
 ## 5. Writing your own sound
 
@@ -122,14 +122,14 @@ Helpers from `CamListener.scd`:
 | `~camAlive.("2")` | Whether bike 2's camera reported in the last 2.5 s. |
 | `~camVerbose = true` | Post every event to the post window. |
 
-Things that will save you trouble:
+Some things to watch for:
 
-- **Rate-limit your sounds.** A busy street can produce several events a second. `CamTemplate.scd` has a `~gate` helper; Soundscapes uses gaps of 1.5 s overall and 4 s per category.
-- **Load samples once, at startup.** Don't call `Buffer.read` inside a hook; every call uses up one of scsynth's limited buffer slots, and they run out within an hour. See how `CamReactions.scd` preloads `~camBufs`.
-- **Don't write `ev.size`.** `size` is a built-in method of every Event (it returns how many fields it has), which is why the field is called `closeness`.
-- **On the bikes, events from other bikes' cameras arrive too** (marked `ev.local == false`). Decide whether a bike should play sounds for what another bike saw; Soundscapes only plays its own camera's events and uses the others for the shared background level.
-- **Expect noise.** The detector sometimes sees things that aren't there. Short-lived detections are already filtered out, but sounds should still feel fine if a "car" appears that isn't real.
-- **Keep it street-safe.** The bikes ride in traffic: avoid sudden loud sounds that could startle drivers.
+- Rate-limit your sounds. A busy street can produce several events a second. `CamTemplate.scd` has a `~gate` helper; Soundscapes uses gaps of 1.5 s overall and 4 s per category.
+- Load samples once, at startup. Don't call `Buffer.read` inside a hook; every call uses up one of scsynth's limited buffer slots, and they run out within an hour. See how `CamReactions.scd` preloads `~camBufs`.
+- Don't write `ev.size`. `size` is a built-in method of every Event (it returns how many fields it has), which is why the field is called `closeness`.
+- On the bikes, events from other bikes' cameras arrive too (marked `ev.local == false`). Decide whether a bike should play sounds for what another bike saw; Soundscapes only plays its own camera's events and uses the others for the shared background level.
+- Expect false detections. Short-lived ones are already filtered out, but sounds should still work if a "car" appears that isn't real.
+- The bikes ride in traffic, so avoid sudden loud sounds that could startle drivers.
 
 ## 6. Putting your sound on the bikes
 

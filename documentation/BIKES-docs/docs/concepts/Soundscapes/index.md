@@ -80,9 +80,9 @@ The `soundscape` variable (default: `rainforest`) can be overridden at run time.
 
 Makes Soundscapes react to the bike cameras (see [Camera](../Camera/index.md)). Loaded by `GUIListener.scd`; without a camera running, nothing changes.
 
-- **Keynote**: the base track's level (0.75–1.0) and low-pass filter (2.5–16 kHz) follow how busy it is around all bikes with cameras, gliding over about 2 seconds.
-- **Signals**: a person triggers a soundmark sample (louder when closer); a bicycle or animal an octave-up sample; a car or motorcycle a delayed and reverberated one; a bus, truck or train a bitcrushed one.
-- **Ripple**: someone walking toward the bike calls `pathTrigger`, sending a sound around the ring.
+- Keynote: the base track's level (0.75 to 1.0) and low-pass filter (2.5 to 16 kHz) follow how busy it is around all bikes with cameras, gliding over about 2 seconds.
+- Signals: a person triggers a soundmark sample (louder when closer); a bicycle or animal an octave-up sample; a car or motorcycle a delayed and reverberated one; a bus, truck or train a bitcrushed one.
+- Ripple: someone walking toward the bike calls `pathTrigger`, sending a sound around the ring.
 - Samples are loaded once at startup. Rate limits (`~camMinGap` 1.5 s, `~camCategoryGap` 4 s, `~camRippleGap` 12 s) and `~camGain` are at the top of the file; `~camReactive = false` turns the camera off.
 
 The playbook starts `camera_osc.py` as its last step, using `camera_facing` from the inventory and optional `-e camera_args="..."`.
