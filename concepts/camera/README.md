@@ -4,7 +4,7 @@ The bikes' Raspberry Pi AI Camera (IMX500) as an input for sound. The camera det
 
 You don't need a bike to work on camera-reactive sounds: `fake_camera.py` sends the same messages from your laptop, and `CamTemplate.scd` is a ready-to-run starting point.
 
-**Status:** the camera code is on the `camera-soundscapes` branch of `L42i/BIKESv3` until it is merged into `main`. Only **bikes1** has a camera so far; it faces the bike's **left** side. Every bike will get one, and the mounting direction may still change, so write sounds that work for any direction (use the `category` and `azimuth` fields, see below).
+**Status:** Only **bikes1** has a camera so far; it faces the bike's **left** side. Every bike will get one, and the mounting direction may still change, so write sounds that work for any direction (use the `category` and `azimuth` fields, see below).
 
 ## Files
 
@@ -21,8 +21,8 @@ You don't need a bike to work on camera-reactive sounds: `fake_camera.py` sends 
 If you already have the repo:
 
 ```bash
-git fetch origin
-git switch camera-soundscapes
+git switch main
+git pull
 ```
 
 If you don't:
@@ -30,10 +30,7 @@ If you don't:
 ```bash
 git clone https://github.com/L42i/BIKESv3.git
 cd BIKESv3
-git switch camera-soundscapes
 ```
-
-Once the branch is merged, use `main` instead. To get later updates: `git pull`.
 
 You need [SuperCollider](https://supercollider.github.io) and Python 3 with `python-osc`:
 

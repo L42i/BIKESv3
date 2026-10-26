@@ -4,7 +4,7 @@ Each bike is getting a Raspberry Pi AI Camera (Sony IMX500). The camera runs obj
 
 Only **bikes1** has a camera so far, mounted facing the bike's **left** side. The code runs on every bike and does nothing where no camera is attached.
 
-The full guide for writing camera-reactive sounds, including how to work on your laptop without a bike, is in [`concepts/camera/README.md`](https://github.com/L42i/BIKESv3/tree/camera-soundscapes/concepts/camera) (on the `camera-soundscapes` branch until it is merged).
+The full guide for writing camera-reactive sounds, including how to work on your laptop without a bike, is in [`concepts/camera/README.md`](https://github.com/L42i/BIKESv3/tree/main/concepts/camera).
 
 ---
 
