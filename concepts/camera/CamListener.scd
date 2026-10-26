@@ -1,4 +1,4 @@
-// CamListener.scd — shared camera input for BIKES concepts.
+// CamListener.scd: shared camera input for BIKES concepts.
 //
 // Receives /cam/* OSC from camera_osc.py on this bike, keeps the latest camera
 // state of every bike, shares this bike's camera with its peers over P2PSC,

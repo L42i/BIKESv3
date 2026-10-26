@@ -1,4 +1,4 @@
-// CamReactions.scd — how Soundscapes reacts to the camera. Loaded by GUIListener.scd
+// CamReactions.scd: how Soundscapes reacts to the camera. Loaded by GUIListener.scd
 // after ../camera/CamListener.scd. Needs ~soundscape and ~absolutePrefix.
 //
 // Keynote (base track): its level and brightness follow how busy the surroundings
