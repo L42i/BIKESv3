@@ -6,7 +6,7 @@
 
   vars:
     soundscape: "marine"
-    remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/concepts/gps_motion"
+    remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/concepts/BIKES_GPS_Motion"
     media_dir: "/home/{{ ansible_user }}/Desktop/BIKES/media/gps_motion/samples/{{ soundscape }}"
     gui_user: "{{ ansible_user }}"
     gps_port: "{{ gps_serial_port | default('/dev/ttyUSB0') }}"

@@ -14,11 +14,7 @@ ansible-playbook -k -i ./utility/config/bikes.ini  --extra-vars "key=/path/to/yo
 
 
 
-ansible-playbook -i ./utility/config/bikes.ini \concepts/gps_motion/gps_motion.yml
+ansible-playbook -k -i ./utility/config/bikes.ini \concepts/BIKES_GPS_Motion/gps_motion_new2.yml
 
 
 ansible
-
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGUbiLWqC57JPVwMw50jh2Hf3jroxlr4KgDBtSxHNxnC attlaszheng
-
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGUbiLWqC57JPVwMw50jh2Hf3jroxlr4KgDBtSxHNxnC attlaszheng

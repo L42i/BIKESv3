@@ -331,8 +331,6 @@ def arguments():
     parser.add_argument("--rate-return", type=float, default=4.0,
                         help="Seconds to recover approximately 95 percent toward default")
     parser.add_argument("--rate-hz", type=float, default=10.0)
-    parser.add_argument("--rhythm-only", action="store_true",
-                        help="Send rhythm speed and peer events, without switching motion samples")
     parser.add_argument("--demo", action="store_true",
                         help="Use simulated acceleration/deceleration; do not open a GPS port")
     parser.add_argument("--verbose", action="store_true")
@@ -459,11 +457,9 @@ def main():
                             LOG.warning("Peer OSC send failed: %s", error)
                     outbox.remove((deadline, event))
             for event, metrics, trigger_id in coordinator.due(wall_now, now):
-                if not args.rhythm_only:
-                    osc_client.send_message("/motion", [event.kind, event.number, trigger_id,
-                                            event.source, metrics["acceleration"], metrics["turn_rate"]])
-                LOG.info("%s %s/%s.wav chosen by bike %s, acceleration=%.2f turn=%.1f",
-                         "MATCH" if args.rhythm_only else "PLAY",
+                osc_client.send_message("/motion", [event.kind, event.number, trigger_id,
+                                        event.source, metrics["acceleration"], metrics["turn_rate"]])
+                LOG.info("PLAY %s/%s.wav chosen by bike %s, acceleration=%.2f turn=%.1f",
                          event.kind, event.number, event.source,
                          metrics["acceleration"], metrics["turn_rate"])
             if last_fix_at is not None and now - last_fix_at > args.gps_timeout:

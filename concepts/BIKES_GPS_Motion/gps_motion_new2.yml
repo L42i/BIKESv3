@@ -9,7 +9,7 @@
     sample_count: 4
 
     remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/concepts/BIKES_GPS_Motion"
-    gps_port: "{{ gps_serial_port | default('/dev/ttyUSB0') }}"
+    gps_port: "{{ gps_serial_port | default('/dev/ttyACM0') }}"
     baud_rate: 9600
     jack_hw_device: "{{ bikes_audio_device | default('hw:2,0') }}"
     ready_file: "{{ remote_app_dir }}/gps_motion.ready"
@@ -21,10 +21,10 @@
       "3": "10.10.10.13"
       "4": "10.10.10.14"
 
-    accel_threshold: 0.4
-    decel_threshold: 0.4
-    turn_rate: 10.0
-    turn_angle: 25.0
+    accel_threshold: 0.1
+    decel_threshold: 0.1
+    turn_rate: 5.0
+    turn_angle: 30.0
     min_turn_speed: 0.5
     window: 2.5
     min_span: 1.0
@@ -42,7 +42,6 @@
     rate_gain: 0.4
     rate_attack: 3.0
     rate_return: 4.0
-    rhythm_only: false
 
     amp: 0.3
     fade_time: 0.2
@@ -140,7 +139,6 @@
           --default-rate {{ default_rate }} --min-rate {{ min_rate }} \
           --max-rate {{ max_rate }} --rate-gain {{ rate_gain }} \
           --rate-attack {{ rate_attack }} --rate-return {{ rate_return }} \
-          {{ '--rhythm-only' if rhythm_only | bool else '' }} \
           > gps_log.txt 2>&1 &
       async: 2592000
       poll: 0

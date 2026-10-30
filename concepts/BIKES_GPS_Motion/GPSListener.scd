@@ -187,24 +187,45 @@ s.waitForBoot({
     }, "/rhythmRate", NetAddr("127.0.0.1", nil), recvPort: 57120);
 
     OSCdef(\gpsMotionListener, { |msg|
-        var kind, number, eventID, sourceBike, key;
-        if(msg.size >= 7) {
-            kind = msg[1].asString;
-            number = msg[2].asInteger;
-            eventID = msg[3].asString;
-            sourceBike = msg[4].asString;
-            if(~motionTypes.includes(kind) && (number >= 0) &&
-                (number < ~sampleCount) && ~seenEvents.includes(eventID).not) {
+    var kind, number, eventID, sourceBike, key;
+
+    ("Received /motion: " ++ msg.asString).postln;
+
+    if(msg.size >= 7) {
+        kind = msg[1].asString;
+        number = msg[2].asInteger;
+        eventID = msg[3].asString;
+        sourceBike = msg[4].asString;
+
+        if(
+            ~motionTypes.includesEqual(kind)
+            and: { number >= 0 }
+            and: { number < ~sampleCount }
+        ) {
+            if(~seenEvents.includesEqual(eventID).not) {
                 key = kind ++ "/" ++ number.asString;
+
                 ~seenEvents.add(eventID);
-                if(~seenEvents.size > 128) { ~seenEvents.removeAt(0) };
+                if(~seenEvents.size > 128) {
+                    ~seenEvents.removeAt(0);
+                };
                 ~lastEventID = eventID;
-                ("GPS " ++ kind ++ "; first bike=" ++ sourceBike
-                    ++ "; acceleration=" ++ msg[5] ++ "; turnRate=" ++ msg[6]).postln;
+
+                ("Accepted motion: " ++ key
+                    ++ "; sourceBike=" ++ sourceBike).postln;
+
                 ~rSound.(key);
+            } {
+                ("Ignored duplicate event: " ++ eventID).postln;
             };
+        } {
+            ("Rejected motion: kind=" ++ kind
+                ++ "; number=" ++ number).warn;
         };
-    }, "/motion", NetAddr("127.0.0.1", nil), recvPort: 57120);
+    } {
+        ("Malformed /motion: " ++ msg.asString).warn;
+    };
+}, "/motion", NetAddr("127.0.0.1", nil), recvPort: 57120);
 
     ~startRhythm.();
     // Return to default if Python crashes or rate heartbeats stop arriving.
@@ -227,4 +248,4 @@ s.waitForBoot({
     };
     "GPSListener READY; listening for local /motion on UDP 57120".postln;
 });
-)
+) 
