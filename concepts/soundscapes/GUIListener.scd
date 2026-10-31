@@ -11,6 +11,12 @@ s.waitForBoot({
 
 	~absolutePrefix = thisProcess.nowExecutingPath.dirname;
 
+	// CAMERA: reacts to what this bike's camera (and peers' cameras) see.
+	// Harmless without a camera: nothing arrives and the base track stays at amp 1 / LPF 16 kHz.
+	[~absolutePrefix +/+ "../camera/CamListener.scd", ~absolutePrefix +/+ "CamReactions.scd"].do { |path|
+		if(File.exists(path)) { path.load } { ("camera file missing: " ++ path).postln };
+	};
+
 
 
 	{
@@ -61,7 +67,9 @@ s.waitForBoot({
     Pbindef(\songLoop,
         \instrument, Pfunc { ~songInstr.() },
         \buf,        Pfunc { ~song.bufnum },
-        \amp,        1.0,
+        // level and brightness come from the camera keynote buses (1 / 16 kHz without a camera)
+        \amp,        Pfunc { if(~keynoteAmpBus.notNil) { ~keynoteAmpBus.asMap } { 1.0 } },
+        \lpfFreq,    Pfunc { if(~keynoteLpfBus.notNil) { ~keynoteLpfBus.asMap } { 16000 } },
         \rate,       1.0,
         \startpos,   0.0,
         \dur,        Pfunc { ~song.duration / ~shared_CLOCK.beatDur }
@@ -134,6 +142,9 @@ s.waitForBoot({
 					};
 				};
 			},"/ping");
+
+			// CAMERA: share this bike's camera with peers and hear theirs
+			if(~camAttachP2PSC.notNil) { ~camAttachP2PSC.(p) };
 		};
 	}.();
 
