@@ -1,0 +1,80 @@
+---
+# BIKES Flocking: run from the repo root on the laptop / control machine:
+#   ansible-playbook -i ./utility/config/bikes.ini concepts/flock/flock.yml --limit 10.10.10.11
+# Extra options: -e camera_args="--send 10.10.10.50:57120 --stream-port 8000" -e gps_args="--radius-feet 100"
+- name: Start BIKES Flocking
+  hosts: bikes
+  gather_facts: false
+  become: true
+
+  vars:
+    remote_app_dir: "/home/{{ ansible_user }}/Desktop/BIKES/concepts/flock"
+    log_dir: "/home/{{ ansible_user }}/Desktop"
+    camera_args: ""
+    gps_args: ""
+
+  tasks:
+    - name: Kill all SuperCollider things
+      command: killall -9 sclang scsynth
+      ignore_errors: true
+
+    - name: Kill all jackd things
+      command: killall -9 jackd
+      ignore_errors: true
+
+    - name: Kill all python3 things
+      command: killall -9 python3
+      ignore_errors: true
+
+    - name: Start jack
+      become: false
+      shell: |
+        jackd -d alsa -d hw:2,0 &
+      async: 2592000
+      poll: 0
+
+    - name: Pause briefly
+      pause:
+        seconds: 2
+
+    - name: Run SC script
+      become: false
+      shell: |
+        cd "{{ remote_app_dir }}" && \
+        env \
+          HOME="/home/{{ ansible_user }}" \
+          DISPLAY=":0" \
+          XAUTHORITY="/home/{{ ansible_user }}/.Xauthority" \
+          nohup sclang "{{ remote_app_dir }}/FlockSpeech.scd" > "{{ log_dir }}/flock_sclang.log" 2>&1 &
+      async: 2592000
+      poll: 0
+
+    - name: Wait for scsynth to appear
+      shell: pgrep -af scsynth
+      register: scsynth_check
+      retries: 10
+      delay: 1
+      until: scsynth_check.rc == 0
+
+    - name: Extra pause for JACK to settle
+      pause:
+        seconds: 5
+
+    - name: Launch GPS process
+      become: false
+      shell: |
+        cd "{{ remote_app_dir }}" && \
+        nohup python3 -u flock_gps.py {{ gps_args }} > "{{ log_dir }}/flock_gps.log" 2>&1 &
+      async: 2592000
+      poll: 0
+
+    # Runs on every bike; exits quietly where no IMX500 is attached.
+    # Set camera_facing per bike in utility/config/bikes.ini.
+    - name: Launch camera process
+      become: false
+      shell: |
+        cd "{{ remote_app_dir }}" && \
+        nohup python3 -u flock_camera.py --facing "{{ camera_facing | default('left') }}" {{ camera_args }} \
+          > "{{ log_dir }}/flock_camera.log" 2>&1 &
+      async: 2592000
+      poll: 0
