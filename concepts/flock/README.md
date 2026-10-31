@@ -30,7 +30,7 @@ Everything goes to `127.0.0.1:57120` (the bike's sclang). Senders send on every 
 |---|---|
 | `flock_camera.py` | IMX500 detections to `/object/detected/*`. Imports the tracker from `../camera/camera_osc.py`. |
 | `flock_gps.py` | GPS position to `/location/flock` and `/flock/proximity`. Derived from `../flock_detection/flock_gps.py`. |
-| `FlockSpeech.scd` | Receives the events and plays speech. Settings are in `config` at the top. |
+| `FlockSpeech.scd` | Receives the events and plays speech. Settings are in `config` at the top. See [SUPERCOLLIDER.md](SUPERCOLLIDER.md) to work on it. |
 | `sentences.txt` | One sentence per line: `N\|event\|text`. Events are `person`, `car`, `flock`. |
 | `make_placeholder_corpus.py` | Renders `sentences.txt` with espeak-ng into `media/flock/`. |
 | `osc_monitor.py` | Prints all OSC that arrives. |
