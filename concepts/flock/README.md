@@ -137,3 +137,30 @@ python3 flock_gps.py --targets-file route.csv --add-target 33.7745,-84.3954
 | `--radius-feet` | `75` | Entering a zone. |
 | `--exit-margin-feet` | `30` | Extra distance before leaving a zone. |
 | `--gps-timeout` | `5` | Seconds without a fix before the zone is forced to 0. |
+
+
+## Touchscreen speech controls
+
+Start `FlockSpeech.scd` (or `./run_flock.sh`) first, then run this from a terminal
+on the Pi desktop in `concepts/flock`:
+
+```bash
+python3 flock_gui.py
+```
+
+The fullscreen Pygame interface has four buttons: Person, Vehicle, Flock Camera,
+and Person + Camera Zone. Each tap sends `/flock/trigger` with the string
+`person`, `car`, `flock`, or `monitored` to `127.0.0.1:57120`.
+Reload the updated `FlockSpeech.scd` before using the GUI.
+
+Manual taps bypass the automatic event enable flags and cooldowns, replacing any
+current speech with a random sentence/voice in the selected category. They do not
+change camera/GPS presence states. Automatic detection remains active. The GUI
+reports messages sent, not confirmed playback. Camera and GPS processes are not
+required for manual playback; JACK, SuperCollider and speech media are required.
+
+Dependencies are `pygame` and `python-osc` (also used by the existing touch GUIs).
+For a window use `python3 flock_gui.py --windowed`. To change the destination,
+use `--osc-host HOST --osc-port PORT`. Close on screen or Escape exits only the
+GUI; it does not stop audio or the sensors. The existing launchers do not start
+the GUI automatically.

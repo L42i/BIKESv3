@@ -99,6 +99,7 @@ cleanup = { |fromCmdPeriod = false|
     if(state[\stopped].not) {
         state[\stopped] = true;
         addresses.keysDo { |event| OSCdef(("flockSpeech_" ++ event).asSymbol).free };
+        OSCdef(\flockManualTrigger).free;
         if(state[\stopHook].notNil) { CmdPeriod.remove(state[\stopHook]) };
         if(server.serverRunning) {
             // CmdPeriod itself frees the synths; do not free those nodes twice.
@@ -231,6 +232,22 @@ server.waitForBoot({
                 if(msg.size > 1 and: { msg[1].isNumber }) { receive.value(event, msg[1].asInteger) };
             }, path);
         };
+        // Touchscreen commands are events, not camera/GPS presence states.
+        // Each tap replaces current speech and bypasses automatic cooldowns.
+        OSCdef(\flockManualTrigger, { |msg|
+            var event;
+            if(msg.size == 2) {
+                if(["person", "car", "flock", "monitored"].includesEqual(msg[1].asString)) {
+                    event = msg[1].asString.asSymbol;
+                    if((state[\sentences][event] ?? { [] }).any { |n| state[\buffers][n].notNil }) {
+                        state[\group].freeAll;
+                        playSpeech.value(event, Main.elapsedTime);
+                    } {
+                        ("skipped manual " ++ event ++ ": no speech files").postln;
+                    };
+                };
+            };
+        }, "/flock/trigger", recvPort: config[\oscPort]);
         ("Speech directory: " ++ mediaPath).postln;
         ("Flock speech ready: " ++ state[\buffers].size ++ " sentences, OSC ports "
             ++ thisProcess.openPorts.asArray.sort).postln;

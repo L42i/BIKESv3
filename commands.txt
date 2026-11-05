@@ -8,13 +8,14 @@ ansible-playbook -k -i ./utility/config/bikes.ini concepts/GranSynth/runGranSynt
 ansible-playbook -k -i ./utility/config/bikes.ini concepts/forwarding/runForwarding.yml
 ansible-playbook -k -i ./utility/config/bikes.ini concepts/uwb/uwb_shape.yml
 ansible-playbook -k -i ./utility/config/bikes.ini concepts/timesync/timesync.yml
+ansible-playbook -k -i ./utility/config/bikes.ini concepts/flock/flock.yml
+ ansible-playbook -k -i ./utility/config/bikes.ini concepts/flock/flock_backup.yml -e 'camera_args="--stream-port 8000"'
+ansible-playbook -k -i ./utility/config/bikes.ini \concepts/BIKES_GPS_Motion/gps_motion_new2.yml
 
 
 ansible-playbook -k -i ./utility/config/bikes.ini  --extra-vars "key=/path/to/your/key.pub" utility/copy_ssh_key.yml
 
 
-
-ansible-playbook -k -i ./utility/config/bikes.ini \concepts/BIKES_GPS_Motion/gps_motion_new2.yml
 
 
 ansible
