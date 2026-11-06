@@ -11,23 +11,42 @@ Derived from ../flock_detection/flock_gps.py. Sends to 127.0.0.1:57120:
 It is sent on every change and again every 2 s. No fix, a stale fix, and shutdown
 force it to 0.
 
+Peer zone-entry notifications (enabled by default on bikes1 through bikes4):
+  Other bikes, UDP 57122: /flock/peer/entered  STRING bike_id, STRING event_id
+  Local SC, UDP 57120:   /location/flock/peer STRING bike_id, INT 1, STRING event_id
+The peer message is sent only on a local 0 -> 1 zone transition, not heartbeats.
+Received entries do not change this bike's own zone or get rebroadcast. Duplicate
+event IDs are ignored for 60 seconds. UDP is best-effort; no delivery ACK is used.
+SuperCollider must add a handler for /location/flock/peer to react to these events.
+An initial valid fix inside a zone counts as an entry (also after loss of fix).
+
 Usage:
   python3 flock_gps.py                        real GPS (u-blox on /dev/ttyACM0)
-  python3 flock_gps.py --simulate walk        walk through the first target
-  python3 flock_gps.py --simulate             read "lat,lon" lines from stdin
+  python3 flock_gps.py --simulate walk --no-peers   walk through the first target
+  python3 flock_gps.py --simulate --no-peers       read "lat,lon" lines from stdin
+  python3 flock_gps.py --node 1                explicit identity for non-bike users
+  python3 flock_gps.py --peer 2=10.10.10.12    override a peer IP if needed
 See README.md in this folder.
 """
 
 import argparse
+from collections import OrderedDict
+import getpass
+import ipaddress
 import math
 import select
 import signal
+import socket
 import sys
+import threading
 import time
+import uuid
 
 import pynmea2
 import serial
 from pythonosc.udp_client import SimpleUDPClient
+from pythonosc.dispatcher import Dispatcher
+from pythonosc.osc_server import BlockingOSCUDPServer
 
 GPS_PORT = "/dev/ttyACM0"
 BAUD_RATE = 9600
@@ -36,6 +55,11 @@ OSC_HOST = "127.0.0.1"
 OSC_PORT = 57120
 OSC_PATH = "/flock/proximity"
 ZONE_PATH = "/location/flock"
+PEER_PORT = 57122
+PEER_ENTRY_PATH = "/flock/peer/entered"
+PEER_LOCAL_PATH = "/location/flock/peer"
+PEERS = {"1": "10.10.10.11", "2": "10.10.10.12",
+         "3": "10.10.10.13", "4": "10.10.10.14"}
 GPS_TIMEOUT = 5.0
 ZERO_INTERVAL = 0.5
 HEARTBEAT = 2.0
@@ -69,6 +93,91 @@ TARGETS = [
     (33.78783, -84.41243),
     (33.78776, -84.41178),
 ]
+
+
+def default_node():
+    """Match the existing Ansible users; also accept a bikesN hostname."""
+    for identity in (getpass.getuser(), socket.gethostname().split('.')[0]):
+        if identity in {"bikes" + node for node in PEERS}:
+            return identity[-1]
+    return None
+
+
+class PeerZoneRelay:
+    """One independent listener thread, so peers work while GPS has no fix."""
+    def __init__(self, node, peers, peer_port, osc_client, listen_ip="0.0.0.0"):
+        self.node = node
+        self.peers = dict(peers)
+        self.port = peer_port
+        self.osc_client = osc_client
+        self.listen_ip = listen_ip
+        self.clients = {peer: SimpleUDPClient(ip, peer_port)
+                        for peer, ip in peers.items() if peer != node}
+        self.seen = OrderedDict()  # accessed only by the single listener thread
+        self.server = None
+        self.thread = None
+
+    def start(self):
+        routes = Dispatcher()
+        routes.map(PEER_ENTRY_PATH, self.receive, needs_reply_address=True)
+        self.server = BlockingOSCUDPServer((self.listen_ip, self.port), routes)
+        self.thread = threading.Thread(
+            target=self.server.serve_forever, kwargs={"poll_interval": 0.1},
+            name="flock-peer-listener", daemon=True)
+        try:
+            self.thread.start()
+        except Exception:
+            self.server.server_close()
+            self.thread = None
+            raise
+        print(f"Bike {self.node}: peer OSC listening on {self.listen_ip}:{self.port}; "
+              f"{PEER_ENTRY_PATH} -> local {PEER_LOCAL_PATH}", flush=True)
+
+    def entered(self):
+        event_id = uuid.uuid4().hex
+        for peer, client in self.clients.items():
+            try:
+                client.send_message(PEER_ENTRY_PATH, [self.node, event_id])
+            except OSError as error:
+                # A disconnected peer must not stop local GPS/speech processing.
+                print(f"Could not notify bike {peer}: {error}", flush=True)
+        print(f"Bike {self.node} entered a monitored zone; sent peer event {event_id}", flush=True)
+
+    def receive(self, sender, address, *values):
+        if len(values) != 2:
+            return
+        node, event_id = values
+        if not isinstance(node, str) or node == self.node or node not in self.peers:
+            return
+        if sender[0] != self.peers[node]:
+            return  # only accept the configured peer's address and identity
+        if (not isinstance(event_id, str) or len(event_id) != 32 or
+                any(char not in "0123456789abcdef" for char in event_id)):
+            return
+        now = time.monotonic()
+        while self.seen and now - next(iter(self.seen.values())) >= 60:
+            self.seen.popitem(last=False)
+        key = (node, event_id)
+        if key in self.seen:
+            return
+        try:
+            self.osc_client.send_message(PEER_LOCAL_PATH, [node, 1, event_id])
+        except OSError as error:
+            print(f"Could not forward bike {node}'s zone entry to local SC: {error}", flush=True)
+            return
+        self.seen[key] = now
+        if len(self.seen) > 512:
+            self.seen.popitem(last=False)
+        print(f"Peer bike {node} entered a monitored zone; forwarded {PEER_LOCAL_PATH} "
+              f"event {event_id}", flush=True)
+
+    def close(self):
+        if self.server is not None:
+            if self.thread is not None and self.thread.is_alive():
+                self.server.shutdown()
+                self.thread.join(timeout=1)
+            self.server.server_close()
+            self.server = None
 
 
 def distance_meters(lat1, lon1, lat2, lon2):
@@ -154,6 +263,14 @@ def parse_args():
     parser.add_argument("--osc-host", default=OSC_HOST)
     parser.add_argument("--osc-port", type=int, default=OSC_PORT)
     parser.add_argument("--osc-path", default=OSC_PATH)
+    parser.add_argument("--node", choices=tuple(PEERS), default=default_node(),
+                        help="bike ID (default inferred from bikes1..bikes4 user/hostname)")
+    parser.add_argument("--peer-port", type=int, default=PEER_PORT,
+                        help="GPS peer UDP port; use the same port on all bikes")
+    parser.add_argument("--listen-ip", default="0.0.0.0", help="local IPv4 peer-listener address")
+    parser.add_argument("--peer", action="append", default=[], metavar="ID=IP",
+                        help="override a bike IPv4 address (repeatable)")
+    parser.add_argument("--no-peers", action="store_true", help="disable peer send/listen for standalone tests")
     parser.add_argument("--radius-feet", type=positive_float, default=75.0)
     parser.add_argument("--exit-margin-feet", type=non_negative_float, default=30.0)
     parser.add_argument("--gps-timeout", type=positive_float, default=GPS_TIMEOUT)
@@ -170,6 +287,20 @@ def parse_args():
         parser.error("--osc-port must be between 1 and 65535")
     if not args.osc_path.startswith("/"):
         parser.error("--osc-path must start with /")
+    if not 1 <= args.peer_port <= 65535 or args.peer_port == args.osc_port:
+        parser.error("--peer-port must be 1..65535 and different from --osc-port")
+    if not args.no_peers and args.node is None:
+        parser.error("Cannot infer bike ID: pass --node 1..4, or --no-peers for standalone use")
+    args.peers = dict(PEERS)
+    try:
+        ipaddress.IPv4Address(args.listen_ip)
+        for item in args.peer:
+            node, separator, ip = item.partition("=")
+            if not separator or node not in PEERS:
+                raise ValueError("--peer expects ID=IP, with ID 1..4")
+            args.peers[node] = str(ipaddress.IPv4Address(ip))
+    except ValueError as error:
+        parser.error(str(error))
     try:
         args.targets = read_targets_file(args.targets_file) if args.targets_file else list(TARGETS)
     except (OSError, argparse.ArgumentTypeError) as error:
@@ -213,7 +344,7 @@ def walk_positions(target):
         time.sleep(WALK_STEP_SECONDS)
 
 
-def read_gps(args, osc_client, positions):
+def read_gps(args, osc_client, positions, peer_relay=None):
     radius = args.radius_feet * FEET
     exit_radius = (args.radius_feet + args.exit_margin_feet) * FEET
     last_check = float("-inf")
@@ -225,11 +356,14 @@ def read_gps(args, osc_client, positions):
 
     def send_zone(value, now):
         nonlocal zone, last_beat
+        entered = value == 1 and zone == 0
         if value != zone:
             print(f"{ZONE_PATH} {value}", flush=True)
         zone = value
         osc_client.send_message(ZONE_PATH, value)
         last_beat = now
+        if entered and peer_relay is not None:
+            peer_relay.entered()
 
     def send_zero(reason, now):
         nonlocal last_zero, gps_unavailable
@@ -315,9 +449,13 @@ def main():
     else:
         positions = serial_positions(args)
     signal.signal(signal.SIGTERM, lambda *a: sys.exit(0))
+    peer_relay = None
     try:
         osc_client = SimpleUDPClient(args.osc_host, args.osc_port)
-        read_gps(args, osc_client, positions)
+        if not args.no_peers:
+            peer_relay = PeerZoneRelay(args.node, args.peers, args.peer_port, osc_client, args.listen_ip)
+            peer_relay.start()
+        read_gps(args, osc_client, positions, peer_relay)
     except KeyboardInterrupt:
         print("\nGPS program stopped.")
     except serial.SerialException as error:
@@ -326,6 +464,9 @@ def main():
     except OSError as error:
         print(f"GPS/OSC error: {error}")
         return 1
+    finally:
+        if peer_relay is not None:
+            peer_relay.close()
     return 0
 
 

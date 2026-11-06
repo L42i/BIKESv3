@@ -21,16 +21,25 @@ and nothing else is speaking. Every decision goes to the post window.
 A \monitored trigger that finds something else speaking is retried when that
 speech ends, if the person and the zone are both still there.
 
+Peer alarm: /flock/peer/entered, or the GPS relay's /location/flock/peer,
+on this sclang's port 57120. Plays the first readable mono/stereo WAV in
+media/flock/alarm/ (alphabetical), falling back to media/flock/alarm.wav
+when the folder has no WAVs. Preloaded once; independent 2-second cooldown
+from playback start, shared by both paths. Alarms can play alongside speech.
+
 Stop and release resources: ~flockStop.value;
 Reevaluate the block to restart.
 */
 (
 var config, addresses, scriptPath, mediaPath, sentencesPath, server, state;
 var readSentences, scanMedia, cleanup, pickSentence, pickVoice, playSpeech, trigger, route, receive;
+var loadAlarm, playAlarm;
 
 config = (
     oscPort: 57120,            // sclang receiver, not scsynth's 57110
     amp: 0.8,
+    alarmAmp: 0.8,
+    alarmCooldown: 2.0,        // shared by all peer notifications, seconds from start
     out: 0,                    // stereo output channels 0 and 1
     cooldown: (person: 8, car: 8, flock: 20, monitored: 8),  // seconds per event
     enabled: (person: true, car: true, flock: true, monitored: true),  // stationary vs moving mode
@@ -81,6 +90,29 @@ scanMedia = {
     files
 };
 
+loadAlarm = {
+    var directory = PathName(mediaPath +/+ "alarm"), paths = [], buffer;
+    if(directory.isFolder) {
+        paths = directory.files.select { |file| file.extension.toLower == "wav" }
+            .collect(_.fullPath).sort;
+    };
+    if(paths.isEmpty) { paths = [mediaPath +/+ "alarm.wav"] };
+    paths.do { |path|
+        if(buffer.isNil) {
+            var soundFile = SoundFile.openRead(path);
+            if(soundFile.notNil) {
+                if((soundFile.numFrames > 0) and: { [1, 2].includes(soundFile.numChannels) }) {
+                    buffer = Buffer.read(server, path);
+                    ("Peer alarm file: " ++ path).postln;
+                };
+                soundFile.close;
+            };
+        };
+    };
+    if(buffer.isNil) { "No readable mono/stereo alarm WAV; peer alarms are unavailable.".warn };
+    buffer
+};
+
 // Stop the previous instance before replacing its OSC handlers and buffers.
 if(~flockStop.notNil) { ~flockStop.value };
 server = Server.default;
@@ -88,6 +120,7 @@ state = (
     stopped: false, group: nil, stopHook: nil,
     sentences: readSentences.value,
     buffers: Dictionary.new,      // sentence -> voice -> Buffer
+    alarmBuffer: nil, alarmGroup: nil, lastAlarm: -inf,
     last: (person: 0, car: 0, flock: 0),  // last OSC value per address
     lastPlayed: (person: -inf, car: -inf, flock: -inf, monitored: -inf),
     position: (person: 0, car: 0, flock: 0, monitored: 0),
@@ -100,13 +133,18 @@ cleanup = { |fromCmdPeriod = false|
         state[\stopped] = true;
         addresses.keysDo { |event| OSCdef(("flockSpeech_" ++ event).asSymbol).free };
         OSCdef(\flockManualTrigger).free;
+        OSCdef(\flockPeerAlarm).free;
+        OSCdef(\flockPeerAlarmRelay).free;
         if(state[\stopHook].notNil) { CmdPeriod.remove(state[\stopHook]) };
         if(server.serverRunning) {
             // CmdPeriod itself frees the synths; do not free those nodes twice.
             if(fromCmdPeriod.not and: { state[\group].notNil }) { state[\group].free };
+            if(fromCmdPeriod.not and: { state[\alarmGroup].notNil }) { state[\alarmGroup].free };
+            if(state[\alarmBuffer].notNil) { state[\alarmBuffer].free };
             state[\buffers].do { |voices| voices.do(_.free) };
         };
         state[\buffers].clear;
+        state[\alarmBuffer] = nil;
         "Flock speech stopped.".postln;
     };
 };
@@ -148,6 +186,27 @@ playSpeech = { |event, now|
         state[\busyUntil] = now + buffer.duration;
         ("played " ++ event ++ ": sentence " ++ sentence ++ " voice " ++ voice
             ++ " (" ++ buffer.duration.round(0.01) ++ " s)").postln;
+    };
+};
+
+playAlarm = {
+    var now = Main.elapsedTime;
+    var buffer = state[\alarmBuffer];
+    var remaining = state[\lastAlarm] + config[\alarmCooldown] - now;
+    if(state[\stopped].not) {
+        if(buffer.isNil) {
+            "skipped peer alarm: no alarm WAV".postln;
+        } {
+            if(remaining > 0) {
+                ("skipped peer alarm: cooldown, " ++ remaining.round(0.01) ++ " s left").postln;
+            } {
+                Synth.tail(state[\alarmGroup], ("flockSpeech" ++ buffer.numChannels).asSymbol, [
+                    \buf, buffer.bufnum, \amp, config[\alarmAmp], \out, config[\out]
+                ]);
+                state[\lastAlarm] = now;
+                "played peer alarm".postln;
+            };
+        };
     };
 };
 
@@ -193,6 +252,7 @@ receive = { |event, value|
 
 server.waitForBoot({
     var files = scanMedia.value;
+    state[\alarmBuffer] = loadAlarm.value;
 
     state[\sentences].keysValuesDo { |event, numbers|
         numbers.do { |n|
@@ -220,8 +280,14 @@ server.waitForBoot({
     };
 
     server.sync;  // Wait for buffers AND synth definitions before OSC.
+    if(state[\alarmBuffer].notNil and: { state[\alarmBuffer].numFrames <= 0 }) {
+        state[\alarmBuffer].free;
+        state[\alarmBuffer] = nil;
+        "Alarm buffer failed to load; peer alarms are unavailable.".warn;
+    };
     if(state[\stopped].not) {
         state[\group] = Group.head(server);
+        state[\alarmGroup] = Group.tail(server);  // manual speech replacement leaves alarms alone
         if(NetAddr.langPort != config[\oscPort]) {
             if(thisProcess.openUDPPort(config[\oscPort]).not) {
                 ("Cannot open OSC port " ++ config[\oscPort]).warn;
@@ -248,6 +314,14 @@ server.waitForBoot({
                 };
             };
         }, "/flock/trigger", recvPort: config[\oscPort]);
+        // Direct trigger path requested for peer zone entries.
+        OSCdef(\flockPeerAlarm, { |msg| playAlarm.value },
+            "/flock/peer/entered", recvPort: config[\oscPort]);
+        // Existing flock_gps.py relay: [bikeID, 1, eventID] on local port 57120.
+        // Keep 57122 owned by Python; sclang does not bind the peer network port.
+        OSCdef(\flockPeerAlarmRelay, { |msg|
+            if(msg.size >= 3 and: { msg[2] == 1 }) { playAlarm.value };
+        }, "/location/flock/peer", recvPort: config[\oscPort]);
         ("Speech directory: " ++ mediaPath).postln;
         ("Flock speech ready: " ++ state[\buffers].size ++ " sentences, OSC ports "
             ++ thisProcess.openPorts.asArray.sort).postln;
@@ -266,6 +340,8 @@ n.sendMsg("/object/detected/person", 1);  // skipped: busy or cooldown
 n.sendMsg("/object/detected/person", 0);
 n.sendMsg("/location/flock", 1);          // zone only: plays flock when idle
 n.sendMsg("/object/detected/person", 1);  // person inside the zone: plays monitored
+n.sendMsg("/flock/peer/entered", "2", "test-entry"); // alarm (2-second cooldown)
+n.sendMsg("/location/flock/peer", "2", 1, "test-entry"); // same alarm via GPS relay
 n.sendMsg("/location/flock", 0);
 ~flockStop.value;
 */

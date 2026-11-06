@@ -8,9 +8,18 @@ Manual triggers replace current speech and bypass sensor cooldowns.
 Live annotated preview uses the existing camera process, not a second camera.
 Enable it with flock_camera.py --stream-port 8000, or pass the existing playbook
 -e 'camera_args="--stream-port 8000"'. Use --camera-url for another bike's feed.
+Offline Atlanta streets: maps/atlanta_streets.sqlite (bundled, no tile requests).
+GPS: reads ~/Desktop/flock_gps.log produced by flock_gps.py, which owns the
+u-blox serial device /dev/ttyACM0 at 9600 baud. No second serial reader is opened.
+Use --gps-log PATH or --map-file PATH to override these local files.
 """
 import argparse
 import io
+import json
+import math
+from pathlib import Path
+import re
+import sqlite3
 import threading
 import time
 import urllib.request
@@ -25,6 +34,231 @@ EVENTS = (
         "This is a surveilled area."), (111, 68, 136)),
 )
 OSC_ADDRESS = "/flock/trigger"
+
+
+class GPSLogReader:
+    """Follow existing unbuffered GPS output without consuming serial bytes.
+
+    File modification time bounds freshness even on startup. A log left over
+    from yesterday is never treated as a current fix. Reads are bounded and
+    tolerate partial lines, restarts, truncation and replacement.
+    """
+    FIX = re.compile(r"^fix ([+-]?\d+(?:\.\d+)?),([+-]?\d+(?:\.\d+)?) ")
+    TIMEOUT = 5.0  # matches flock_gps.py's default --gps-timeout
+
+    def __init__(self, path):
+        self.path = Path(path).expanduser()
+        self.offset = 0
+        self.identity = None
+        self.modified = None
+        self.partial = b""
+        self.position = None
+        self.fix_at = float('-inf')
+        self.valid = False
+        self.simulated = False
+        self.status = "Waiting for GPS log"
+        self.next_poll = 0.0
+
+    def consume(self, line, observed):
+        match = self.FIX.match(line)
+        if match:
+            lat, lon = map(float, match.groups())
+            if -90 <= lat <= 90 and -180 <= lon <= 180:
+                self.position, self.fix_at, self.valid = (lat, lon), observed, True
+                self.status = "GPS fix"
+        elif any(word in line for word in (
+                "Waiting for a valid GPS fix", "No recent valid GPS fix",
+                "GPS reports no valid fix", "Sent final OSC", "GPS serial error:",
+                "GPS program stopped", "GPS/OSC error:", "Traceback")):
+            self.valid = False
+            self.status = "No GPS fix"
+        elif line.startswith("Simulating:"):
+            self.simulated = True
+
+    def poll(self):
+        now = time.monotonic()
+        if now < self.next_poll:
+            return
+        self.next_poll = now + 0.25
+        try:
+            with self.path.open('rb') as stream:
+                import os
+                stat = os.fstat(stream.fileno())
+                identity = (stat.st_dev, stat.st_ino)
+                reset = (identity != self.identity or stat.st_size < self.offset or
+                         (stat.st_size == self.offset and stat.st_mtime_ns != self.modified))
+                if reset:
+                    self.valid = False
+                    self.simulated = b'Simulating:' in stream.read(2048)
+                    self.offset = max(0, stat.st_size - 65536)
+                    self.partial = b''
+                stream.seek(self.offset)
+                if reset and self.offset:
+                    stream.readline()  # discard the first incomplete line of a tail
+                data = stream.read(65536)
+                self.offset = stream.tell()
+                self.identity, self.modified = identity, stat.st_mtime_ns
+            # Do not present a backlog as live; catch up at the next poll.
+            if self.offset < stat.st_size:
+                self.offset = max(0, stat.st_size - 65536)
+                self.identity = None
+                self.valid = False
+                self.status = "Catching up with GPS"
+                return
+            lines = (self.partial + data).split(b'\n')
+            self.partial = lines.pop()[-8192:]
+            observed = now - max(0.0, time.time() - stat.st_mtime)
+            for line in lines:
+                self.consume(line.decode('utf-8', errors='replace').strip(), observed)
+        except OSError:
+            self.valid = False
+            self.status = "GPS log unavailable"
+
+    def is_live(self):
+        return self.valid and time.monotonic() - self.fix_at <= self.TIMEOUT
+
+
+def meters_per_degree(latitude):
+    """WGS84 local east/north scale, appropriate for a 100 m viewport."""
+    phi = math.radians(latitude)
+    e2 = 6.69437999014e-3
+    denominator = 1 - e2 * math.sin(phi) ** 2
+    north = 6378137 * (1 - e2) / denominator ** 1.5 * math.pi / 180
+    east = 6378137 / math.sqrt(denominator) * math.cos(phi) * math.pi / 180
+    return east, north
+
+
+def map_bounds(latitude, longitude):
+    east, north = meters_per_degree(latitude)
+    return (longitude - 50 / east, latitude - 50 / north,
+            longitude + 50 / east, latitude + 50 / north)
+
+
+class OfflineStreetMap:
+    """Read-only spatially indexed street geometry; never accesses the network."""
+    def __init__(self, path):
+        self.db = None
+        self.error = None
+        self.bounds = None
+        self.key = None
+        self.roads = []
+        try:
+            self.db = sqlite3.connect(Path(path).resolve().as_uri() + '?mode=ro', uri=True)
+            self.bounds = json.loads(self.db.execute(
+                "SELECT value FROM metadata WHERE name='bounds'").fetchone()[0])
+        except (OSError, sqlite3.Error, TypeError, ValueError) as error:
+            self.error = "Offline map unavailable"
+            print(f"Offline map: {error}", flush=True)
+
+    def streets(self, position):
+        if self.db is None or self.error:
+            return []
+        if self.key != position:
+            west, south, east, north = map_bounds(*position)
+            try:
+                rows = self.db.execute(
+                    "SELECT r.name,r.kind,r.geometry FROM roads r JOIN road_index i ON r.id=i.id "
+                    "WHERE i.max_lon>=? AND i.min_lon<=? AND i.max_lat>=? AND i.min_lat<=?",
+                    (west, east, south, north))
+                self.roads = [(name, kind, json.loads(geometry)) for name, kind, geometry in rows]
+                self.key = position
+            except (sqlite3.Error, ValueError) as error:
+                self.error = "Offline map unreadable"
+                self.roads = []
+                print(f"Offline map: {error}", flush=True)
+        return self.roads
+
+    def covers(self, position):
+        if self.bounds is None:
+            return False
+        west, south, east, north = map_bounds(*position)
+        a, b, c, d = self.bounds
+        return a <= west and b <= south and c >= east and d >= north
+
+    def close(self):
+        if self.db is not None:
+            self.db.close()
+
+
+def draw_location(screen, rect, gps, street_map, font, scale):
+    import pygame
+    pygame.draw.rect(screen, (23, 34, 44), rect, border_radius=12)
+    pad = max(6, int(10 * scale))
+    line_h = font.get_linesize()
+    title = font.render("ATLANTA / OFFLINE / 100 m x 100 m", True, (210, 225, 235))
+    screen.blit(title, (rect.x + pad, rect.y + pad))
+    side = min(rect.height - 2 * pad - 2 * line_h, rect.width - 2 * pad)
+    area = pygame.Rect(rect.x + pad, rect.y + pad + line_h, side, side)
+    pygame.draw.rect(screen, (225, 230, 221), area)
+    position = gps.position
+    live = gps.is_live()
+    status = ("SIMULATED" if gps.simulated else "LIVE GPS") if live else "NO LIVE FIX"
+    if position is not None:
+        latitude, longitude = position
+        east, north = meters_per_degree(latitude)
+        def pixel(point):
+            lon, lat = point
+            return (area.centerx + (lon - longitude) * east * side / 100,
+                    area.centery - (lat - latitude) * north * side / 100)
+        old_clip = screen.get_clip()
+        screen.set_clip(area)
+        names = set()
+        label_boxes = []
+        road_labels = []
+        for name, kind, geometry in street_map.streets(position):
+            points = [pixel(point) for point in geometry]
+            if len(points) < 2:
+                continue
+            path = kind in ('footway', 'path', 'cycleway', 'steps', 'pedestrian')
+            thickness = max(1, round(side / 100 * (1 if path else 4)))
+            pygame.draw.lines(screen, (181, 184, 172), False, points, thickness + 2)
+            pygame.draw.lines(screen, (247, 247, 238) if not path else (178, 161, 123),
+                              False, points, thickness)
+            if name and name not in names:
+                for p, q in zip(points, points[1:]):
+                    clipped = area.clipline(p, q)
+                    if clipped:
+                        start, end = clipped
+                        mid = ((start[0]+end[0])/2, (start[1]+end[1])/2)
+                        label = font.render(name, True, (35, 45, 48), (225, 230, 221))
+                        box = label.get_rect(center=mid)
+                        box.clamp_ip(area)
+                        if label.get_width() <= area.width and not any(box.colliderect(b) for b in label_boxes):
+                            road_labels.append((label, box))
+                            label_boxes.append(box)
+                            names.add(name)
+                        break
+        for label, box in road_labels:
+            screen.blit(label, box)
+        pygame.draw.circle(screen, (10, 70, 130) if live else (110, 110, 110), area.center, max(5, int(6*scale)))
+        pygame.draw.circle(screen, (255, 255, 255), area.center, max(2, int(2*scale)))
+        screen.set_clip(old_clip)
+    else:
+        label = font.render("Waiting for GPS fix", True, (45, 55, 60))
+        screen.blit(label, label.get_rect(center=area.center))
+    # North-up, with a ground-distance scale. The square spans +/-50 m.
+    screen.blit(font.render("N", True, (35, 45, 48)), (area.x+4, area.y+3))
+    bar = round(side / 5)  # 20 metres
+    pygame.draw.line(screen, (35, 45, 48), (area.x+6, area.bottom-7), (area.x+6+bar, area.bottom-7), 2)
+    screen.blit(font.render("20 m", True, (35, 45, 48)), (area.x+6, area.bottom-7-line_h))
+    info = [status]
+    if position:
+        info += [f"{position[0]:.6f}", f"{position[1]:.6f}", "Bike at center" if live else "Last known fix"]
+    else:
+        info += ["Waiting for", "GPS sensor"]
+    if street_map.error:
+        info += [street_map.error]
+    elif position and not street_map.covers(position):
+        info += ["Outside bundled", "map coverage"]
+    info_x = area.right + pad
+    info_width = rect.right - pad - info_x
+    y = area.top
+    for text in info:
+        for line in wrapped_lines(text, font, max(20, info_width)):
+            screen.blit(font.render(line, True, (210, 225, 235)), (info_x, y))
+            y += line_h
+    attribution = font.render("Map: City of Atlanta GIS / StreetCenterline", True, (155, 175, 185))
+    screen.blit(attribution, (rect.x+pad, rect.bottom-pad-line_h))
 
 
 def mjpeg_frames(stream):
@@ -113,6 +347,10 @@ def arguments():
     parser.add_argument("--windowed", action="store_true", help="use a 1024 x 600 window")
     parser.add_argument("--camera-url", default="http://127.0.0.1:8000/stream.mjpg",
                         help="existing camera MJPEG stream URL")
+    parser.add_argument("--gps-log", default=str(Path.home() / 'Desktop' / 'flock_gps.log'),
+                        help="local log from the existing flock_gps.py process")
+    parser.add_argument("--map-file", default=str(Path(__file__).resolve().parent / 'maps' / 'atlanta_streets.sqlite'),
+                        help="bundled offline Atlanta street database")
     args = parser.parse_args()
     if not 1 <= args.osc_port <= 65535:
         parser.error("--osc-port must be between 1 and 65535")
@@ -141,6 +379,7 @@ def main():
     client = SimpleUDPClient(args.osc_host, args.osc_port)
     pygame.init()
     preview = None
+    street_map = None
     try:
         screen = pygame.display.set_mode(
             (1024, 600) if args.windowed else (0, 0),
@@ -151,7 +390,10 @@ def main():
         margin = max(10, int(20 * scale))
         top, bottom = int(94 * scale), int(64 * scale)
         camera_w = int((width - 3 * margin) * 0.40)
-        camera_rect = pygame.Rect(margin, top, camera_w, height - top - bottom)
+        left_height = height - top - bottom
+        camera_h = int((left_height - margin) * 0.55)
+        camera_rect = pygame.Rect(margin, top, camera_w, camera_h)
+        map_rect = pygame.Rect(margin, camera_rect.bottom + margin, camera_w, left_height - camera_h - margin)
         controls_left = camera_rect.right + margin
         cell_w = (width - controls_left - 2 * margin) // 2
         cell_h = (height - top - bottom - margin) // 2
@@ -163,6 +405,9 @@ def main():
         title_font = pygame.font.Font(None, max(18, int(36 * scale)))
         body_font = pygame.font.Font(None, max(12, int(23 * scale)))
         small_font = pygame.font.Font(None, max(12, int(21 * scale)))
+        map_font = pygame.font.Font(None, max(11, int(17 * scale)))
+        gps = GPSLogReader(args.gps_log)
+        street_map = OfflineStreetMap(args.map_file)
         # Fit all sentence labels into the narrower touchscreen buttons once.
         button_text = []
         for _, title, phrases, _ in EVENTS:
@@ -224,13 +469,12 @@ def main():
             pygame.draw.rect(screen, (8, 12, 18), camera_rect, border_radius=14)
             jpeg, stamp, camera_status = preview.snapshot()
             fresh = jpeg is not None and time.monotonic() - stamp < 3
-            video_rect = camera_rect.inflate(-2 * margin, -2 * margin)
-            video_rect.top += int(30 * scale)
-            video_rect.height -= int(30 * scale)
+            # Fill the panel, preserving aspect ratio with a centered crop.
+            video_rect = camera_rect.inflate(-4, -4)
             if fresh and stamp != decoded_stamp:
                 try:
                     frame = pygame.image.load(io.BytesIO(jpeg), "camera.jpg").convert()
-                    ratio = min(video_rect.width / frame.get_width(), video_rect.height / frame.get_height())
+                    ratio = max(video_rect.width / frame.get_width(), video_rect.height / frame.get_height())
                     camera_image = pygame.transform.smoothscale(frame, (
                         max(1, int(frame.get_width() * ratio)), max(1, int(frame.get_height() * ratio))))
                     decoded_stamp = stamp
@@ -238,17 +482,22 @@ def main():
                     camera_image = None
                     camera_status = "Cannot decode camera image"
             if fresh and camera_image is not None:
+                previous_clip = screen.get_clip()
+                screen.set_clip(video_rect)
                 screen.blit(camera_image, camera_image.get_rect(center=video_rect.center))
+                screen.set_clip(previous_clip)
             else:
                 if jpeg is not None and not fresh:
                     camera_status = "Camera feed stalled - waiting"
-                help_text = "Enable the camera stream with --stream-port 8000. Speech buttons remain available."
+                help_text = "No video. Enable --stream-port 8000."
                 for i, line in enumerate(wrapped_lines(help_text, small_font, video_rect.width)):
                     screen.blit(small_font.render(line, True, (175, 190, 205)),
-                                (video_rect.left, video_rect.centery + i * small_font.get_linesize()))
+                                (video_rect.left, video_rect.top + i * small_font.get_linesize()))
             for i, line in enumerate(wrapped_lines(camera_status, small_font, camera_rect.width - 2 * margin)):
-                screen.blit(small_font.render(line, True, (175, 220, 205)),
-                            (camera_rect.left + margin, camera_rect.top + margin + i * small_font.get_linesize()))
+                screen.blit(small_font.render(line, True, (175, 220, 205), (8, 12, 18)),
+                            (camera_rect.left + 8, camera_rect.top + 6 + i * small_font.get_linesize()))
+            gps.poll()
+            draw_location(screen, map_rect, gps, street_map, map_font, scale)
             for index, (key, title, phrases, color) in enumerate(EVENTS):
                 rect = buttons[index]
                 active = selected == index and time.monotonic() < flash_until
@@ -270,6 +519,8 @@ def main():
     finally:
         if preview is not None:
             preview.close()
+        if street_map is not None:
+            street_map.close()
         pygame.quit()
 
 
