@@ -23,15 +23,18 @@ All messages arrive at sclang on port 57120 with one argument.
 | Address | Value | Meaning |
 |---|---|---|
 | `/object/detected/person` | int 1 or 0 | A person is in view |
-| `/object/detected/car` | int 1 or 0 | A car, truck, bus or motorcycle is in view |
-| `/location/flock` | int 1 or 0 | The bike is inside a Flock camera zone (75 ft) |
+| `/object/detected/car` | int 1 or 0 | A car, truck or bus is in view |
+| `/object/detected/vehicle` | int 1 or 0 | A motorcycle, bicycle, train, boat or airplane is in view |
+| `/flock/zone` | int 1 or 0 | FLOCK ON/OFF on the touchscreen: the bike is inside a Flock camera zone. Used while `config[\zoneSource]` is `\gui` (the default). |
+| `/location/flock` | int 1 or 0 | GPS: the bike is inside a Flock camera zone (75 ft). Used only when `config[\zoneSource]` is `\gps`. |
 | `/flock/proximity` | float 0 to 1 | 1 at a camera, 0 outside the zone. Not used yet. |
+| `/flock/echo` | string, string, int, int | Another bike's bike ID, event, sentence and voice, sent when it finished a sentence |
 
 What this means for your logic:
 
 - The three int messages repeat every 2 s, so always react to a change, never to a message arriving.
 - The camera sends 1 at once, and sends 0 about 2 s after the object leaves.
-- The zone goes to 0 only 30 ft past the edge, so GPS noise does not flicker it.
+- The GPS zone goes to 0 only 30 ft past the edge, so GPS noise does not flicker it. The GPS is set aside for now because its USB link keeps dropping; set `zoneSource: \gps` to go back to it.
 - `/flock/proximity` updates about once per second, at the GPS rate. Smooth it if you map it to sound.
 - If sclang restarts while something is in view, the next repeated 1 counts as a new trigger.
 
@@ -48,21 +51,39 @@ OSCdef -> receive -> route -> trigger -> playSpeech -> pickSentence, pickVoice
 | `trigger` | Decides play or skip, in this order: disabled, busy, cooldown |
 | `pickSentence` | Picks a sentence for the event |
 | `pickVoice` | Picks a voice for that sentence |
-| `playSpeech` | Starts the synth and sets the busy time and cooldown |
+| `playSpeech` | Starts the synth and sets the busy time and cooldown. Stops any echo, and schedules `sendEcho` |
+| `sendEcho` | When the sentence has played to the end, sends `/flock/echo` to the other bikes, unless a newer sentence replaced it |
+| `receiveEcho` | Checks the sender, then queues the echo (one per bike) |
+| `drainEchoes` | Plays queued echoes one at a time when the bike is quiet, and drops any older than `maxWait` |
+| `playEcho` | Plays an echo in its own group, with the sender's voice if this bike has it |
 
 Rules as they stand:
 
 | Situation | Event | Sentences |
 |---|---|---|
-| A person, outside any zone | `person` | 1 |
-| A car | `car` | 4, 5 |
-| Entering a zone, no person in view | `flock` | 7 |
-| A person and a zone at the same time, whichever came first | `monitored` | 2, 3, 6 |
+| A person, outside any zone | `person` | 1, 2 |
+| A car, truck or bus | `car` | 5, 6 |
+| Any other vehicle (no license plate sentence) | `vehicle` | 5 |
+| Entering a zone, no person in view | `flock` | 8 |
+| A person and a zone at the same time, whichever came first | `monitored` | 3, 4, 7 |
 
 - Only one sentence plays at a time, across all events.
-- Cooldowns are per event, counted from the start of the last play.
-- A skipped trigger is dropped, not queued. A person who arrives during a cooldown and stays hears nothing.
+- Cooldowns are per event, counted from the start of the last play. All four are 1 s, which is shorter than every sentence (2.1 to 4.4 s), so in practice an event can play again as soon as the speech before it ends.
+- A skipped trigger is dropped, not queued. A person who arrives while something else is speaking and stays hears nothing.
 - The exception: a `monitored` trigger skipped because something else is speaking is tried again when that speech ends, if the person and the zone are both still there.
+- After an automatic `person`, `car`, `vehicle` or `monitored` sentence has played, the other bikes echo it. An echo never blocks this bike's own triggers: a local trigger stops it. An echo is not sent on, so echoes cannot loop.
+
+Echo settings, in `config[\echo]`:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enabled` | `true` | Send and accept echoes |
+| `events` | `[\person, \car, \vehicle, \monitored]` | Automatic events that the other bikes repeat |
+| `manual` | `false` | Also echo touchscreen taps |
+| `sameVoice` | `true` | Use the sender's voice. `false` lets each bike pick its own |
+| `maxWait` | `10` | Seconds an echo may wait for this bike to be quiet |
+| `amp` | `0.8` | Echo volume |
+| `peers` | `10.10.10.11` to `.14` | Bike N's address is entry N. Echoes from any other address are ignored |
 
 ## Where to change things
 
@@ -85,7 +106,7 @@ To add an event, add it to `addresses`, to `cooldown` and `enabled` in `config`,
 Name files `sentence_N_voice_M.wav`, where `N` is the first field in `sentences.txt`. Any sample rate, mono or stereo. A line in `sentences.txt` looks like this:
 
 ```
-2|monitored|You are entering a surveilled area.
+3|monitored|You are entering a surveilled area.
 ```
 
 Files load when the script starts, so restart it after changing them. A sentence without files gets a warning and is skipped.
@@ -100,11 +121,14 @@ Send fake events from the SuperCollider IDE, one line at a time:
 n = NetAddr("127.0.0.1", NetAddr.langPort);
 n.sendMsg("/object/detected/person", 1);  // person
 n.sendMsg("/object/detected/person", 0);
-n.sendMsg("/location/flock", 1);          // flock
-n.sendMsg("/object/detected/person", 1);  // monitored
+n.sendMsg("/flock/zone", 1);              // flock (FLOCK ON)
+n.sendMsg("/object/detected/person", 1);  // monitored, then echoed by the other bikes
+n.sendMsg("/flock/zone", 0);              // FLOCK OFF
 ```
 
-Every decision goes to the post window: `played monitored: sentence 3 voice 2`, `skipped flock: busy`, `skipped person: cooldown, 6.1 s left`.
+The GUI resends `/flock/zone` every 2 s, so close it before sending your own zone values.
+
+Every decision goes to the post window: `played monitored: sentence 3 voice 2`, `skipped flock: busy`, `skipped car: disabled`.
 
 On a bike, stop the Python senders before sending fake events, or their repeats will overwrite your values. To test with real senders:
 
@@ -124,7 +148,8 @@ tail -f ~/Desktop/flock_sclang.log | grep -E 'played|skipped'
 
 - Load all audio at startup. Do not call `Buffer.read` inside a trigger; scsynth has a limited number of buffers.
 - Free anything new you create in `cleanup`, so `~flockStop` and reevaluating the script stay clean.
-- Each bike runs its own copy and does not talk to the others yet.
+- Each bike runs its own copy. The copies talk to each other only through `/flock/echo` (and the GPS peer alarm).
+- Audio files load in batches of 16. When all of them loaded at once, a few buffers on bikes 2 and 3 ended up without a size and failed to play.
 - The bikes ride in traffic, so avoid sudden loud sounds.
 - If the "Flock speech ready" line shows a port other than 57120, another sclang is running. Stop it first.
 
@@ -132,6 +157,6 @@ tail -f ~/Desktop/flock_sclang.log | grep -E 'played|skipped'
 
 - Both modes are on by default, and nothing switches between them automatically. Should a moving bike ignore the camera?
 - Should someone who stays in view hear a second announcement?
-- Are the 8 s and 20 s cooldowns right on a real street?
+- Is the 1 s cooldown right on a real street? It used to be 8 s (20 s for `flock`).
 - What should `/flock/proximity` do, if anything?
 - How should four bikes sound together?

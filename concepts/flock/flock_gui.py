@@ -2,9 +2,13 @@
 """Four-button BIKES Flocking touchscreen. Start FlockSpeech.scd first.
 
 Run: python3 flock_gui.py [--windowed] [--osc-host HOST] [--osc-port PORT]
-Requires pygame and python-osc. Escape or the on-screen Close button exits.
+Requires pygame and python-osc. Close (or Escape) asks for confirmation before
+exiting; the confirmation cancels itself after 10 s.
 Each tap sends /flock/trigger with person, car, flock, or monitored.
 Manual triggers replace current speech and bypass sensor cooldowns.
+FLOCK ON/OFF replaces the GPS zone decision: it sends /flock/zone 1 (inside a
+Flock camera zone) or 0 (outside) on every tap and again every 2 s. It starts
+OFF, and closing the GUI sends 0.
 Live annotated preview uses the existing camera process, not a second camera.
 Enable it with flock_camera.py --stream-port 8000, or pass the existing playbook
 -e 'camera_args="--stream-port 8000"'. Use --camera-url for another bike's feed.
@@ -24,16 +28,68 @@ import threading
 import time
 import urllib.request
 
+# High-visibility palette for direct sunlight: black on white, bright safety
+# colours under black text, thick black outlines. Every text/fill pair is >= 7:1.
+INK = (0, 0, 0)
+PAPER = (255, 255, 255)
+SOFT_INK = (45, 45, 45)
+ON_GREEN = (0, 205, 80)
+WARN_YELLOW = (255, 214, 0)
+CLOSE_RED = (180, 0, 0)  # white text on it is 7.6:1
+CLOSE_CONFIRM_TIMEOUT = 10.0  # an unanswered close confirmation cancels itself
+
 EVENTS = (
-    ("person", "PERSON", ("Person detected.",), (36, 103, 143)),
-    ("car", "VEHICLE", ("Vehicle detected.", "Your license plate has been recorded."), (139, 79, 39)),
-    ("flock", "FLOCK CAMERA", ("A Flock camera is watching this street.",), (53, 113, 86)),
+    ("person", "PERSON", ("Person detected.", "The bikes are watching you."), (255, 214, 0)),
+    ("car", "VEHICLE", ("Vehicle detected.", "Your license plate has been recorded."), (255, 145, 0)),
+    ("flock", "FLOCK CAMERA", ("A Flock camera is watching this street.",), (0, 205, 255)),
     ("monitored", "PERSON + CAMERA ZONE", (
         "You are entering a surveilled area.",
         "Please dismount your bike. You are being monitored.",
-        "This is a surveilled area."), (111, 68, 136)),
+        "This is a surveilled area."), (255, 120, 190)),
 )
 OSC_ADDRESS = "/flock/trigger"
+ZONE_ADDRESS = "/flock/zone"
+ZONE_HEARTBEAT = 2.0  # same resend interval as the camera and GPS senders
+
+
+class FlockZoneToggle:
+    """FLOCK ON = inside a Flock camera zone, OFF = outside. Replaces the GPS zone.
+
+    UDP can drop packets and sclang may restart, so the state is resent every
+    ZONE_HEARTBEAT seconds; FlockSpeech.scd only reacts to a 0 -> 1 change.
+    """
+
+    def __init__(self, client):
+        self.client = client
+        self.on = False
+        self.next_send = 0.0
+        self.error = None
+
+    def send(self):
+        self.next_send = time.monotonic() + ZONE_HEARTBEAT
+        self.client.send_message(ZONE_ADDRESS, int(self.on))
+        self.error = None
+
+    def toggle(self):
+        self.on = not self.on
+        self.send()
+
+    def heartbeat(self):
+        if time.monotonic() < self.next_send:
+            return
+        try:
+            self.send()
+        except OSError as error:
+            if self.error is None:
+                print(f"Could not send {ZONE_ADDRESS}: {error}", flush=True)
+            self.error = error
+
+    def close(self):
+        self.on = False
+        try:
+            self.send()
+        except OSError:
+            pass
 
 
 class GPSLogReader:
@@ -182,14 +238,16 @@ class OfflineStreetMap:
 
 def draw_location(screen, rect, gps, street_map, font, scale):
     import pygame
-    pygame.draw.rect(screen, (23, 34, 44), rect, border_radius=12)
-    pad = max(6, int(10 * scale))
+    pygame.draw.rect(screen, PAPER, rect, border_radius=12)
+    pygame.draw.rect(screen, INK, rect, width=max(3, int(4 * scale)), border_radius=12)
+    pad = max(8, int(12 * scale))
     line_h = font.get_linesize()
-    title = font.render("ATLANTA / OFFLINE / 100 m x 100 m", True, (210, 225, 235))
+    title = font.render("ATLANTA / OFFLINE / 100 m x 100 m", True, INK)
     screen.blit(title, (rect.x + pad, rect.y + pad))
     side = min(rect.height - 2 * pad - 2 * line_h, rect.width - 2 * pad)
     area = pygame.Rect(rect.x + pad, rect.y + pad + line_h, side, side)
-    pygame.draw.rect(screen, (225, 230, 221), area)
+    pygame.draw.rect(screen, (240, 240, 228), area)
+    pygame.draw.rect(screen, INK, area, width=2)
     position = gps.position
     live = gps.is_live()
     status = ("SIMULATED" if gps.simulated else "LIVE GPS") if live else "NO LIVE FIX"
@@ -211,8 +269,8 @@ def draw_location(screen, rect, gps, street_map, font, scale):
                 continue
             path = kind in ('footway', 'path', 'cycleway', 'steps', 'pedestrian')
             thickness = max(1, round(side / 100 * (1 if path else 4)))
-            pygame.draw.lines(screen, (181, 184, 172), False, points, thickness + 2)
-            pygame.draw.lines(screen, (247, 247, 238) if not path else (178, 161, 123),
+            pygame.draw.lines(screen, (40, 40, 40), False, points, thickness + 2)
+            pygame.draw.lines(screen, PAPER if not path else (150, 100, 30),
                               False, points, thickness)
             if name and name not in names:
                 for p, q in zip(points, points[1:]):
@@ -220,7 +278,7 @@ def draw_location(screen, rect, gps, street_map, font, scale):
                     if clipped:
                         start, end = clipped
                         mid = ((start[0]+end[0])/2, (start[1]+end[1])/2)
-                        label = font.render(name, True, (35, 45, 48), (225, 230, 221))
+                        label = font.render(name, True, INK, (240, 240, 228))
                         box = label.get_rect(center=mid)
                         box.clamp_ip(area)
                         if label.get_width() <= area.width and not any(box.colliderect(b) for b in label_boxes):
@@ -230,17 +288,18 @@ def draw_location(screen, rect, gps, street_map, font, scale):
                         break
         for label, box in road_labels:
             screen.blit(label, box)
-        pygame.draw.circle(screen, (10, 70, 130) if live else (110, 110, 110), area.center, max(5, int(6*scale)))
-        pygame.draw.circle(screen, (255, 255, 255), area.center, max(2, int(2*scale)))
+        pygame.draw.circle(screen, INK, area.center, max(8, int(10*scale)))
+        pygame.draw.circle(screen, (0, 90, 255) if live else (130, 130, 130), area.center, max(6, int(8*scale)))
+        pygame.draw.circle(screen, PAPER, area.center, max(2, int(3*scale)))
         screen.set_clip(old_clip)
     else:
-        label = font.render("Waiting for GPS fix", True, (45, 55, 60))
+        label = font.render("Waiting for GPS fix", True, INK)
         screen.blit(label, label.get_rect(center=area.center))
     # North-up, with a ground-distance scale. The square spans +/-50 m.
-    screen.blit(font.render("N", True, (35, 45, 48)), (area.x+4, area.y+3))
+    screen.blit(font.render("N", True, INK), (area.x+4, area.y+3))
     bar = round(side / 5)  # 20 metres
-    pygame.draw.line(screen, (35, 45, 48), (area.x+6, area.bottom-7), (area.x+6+bar, area.bottom-7), 2)
-    screen.blit(font.render("20 m", True, (35, 45, 48)), (area.x+6, area.bottom-7-line_h))
+    pygame.draw.line(screen, INK, (area.x+6, area.bottom-7), (area.x+6+bar, area.bottom-7), 3)
+    screen.blit(font.render("20 m", True, INK), (area.x+6, area.bottom-7-line_h))
     info = [status]
     if position:
         info += [f"{position[0]:.6f}", f"{position[1]:.6f}", "Bike at center" if live else "Last known fix"]
@@ -255,9 +314,9 @@ def draw_location(screen, rect, gps, street_map, font, scale):
     y = area.top
     for text in info:
         for line in wrapped_lines(text, font, max(20, info_width)):
-            screen.blit(font.render(line, True, (210, 225, 235)), (info_x, y))
+            screen.blit(font.render(line, True, INK), (info_x, y))
             y += line_h
-    attribution = font.render("Map: City of Atlanta GIS / StreetCenterline", True, (155, 175, 185))
+    attribution = font.render("Map: City of Atlanta GIS / StreetCenterline", True, SOFT_INK)
     screen.blit(attribution, (rect.x+pad, rect.bottom-pad-line_h))
 
 
@@ -334,6 +393,60 @@ class CameraPreview:
         self.thread.join(timeout=0.2)
 
 
+def draw_zone_toggle(screen, rect, on, font, scale):
+    """A switch: bright green with the knob right for ON, white with the knob left for OFF."""
+    import pygame
+    pygame.draw.rect(screen, ON_GREEN if on else PAPER, rect, border_radius=8)
+    pygame.draw.rect(screen, INK, rect, width=max(3, int(4 * scale)), border_radius=8)
+    pad = max(8, int(11 * scale))
+    track_h = max(12, rect.height - 2 * pad)
+    track = pygame.Rect(0, 0, int(track_h * 1.8), track_h)
+    track.midright = (rect.right - pad, rect.centery)
+    pygame.draw.rect(screen, INK, track, border_radius=track_h // 2)
+    knob_x = track.right - track_h // 2 if on else track.left + track_h // 2
+    pygame.draw.circle(screen, ON_GREEN if on else PAPER, (knob_x, track.centery), max(4, track_h // 2 - 3))
+    label = font.render("FLOCK ON" if on else "FLOCK OFF", True, INK)
+    screen.blit(label, label.get_rect(center=((rect.left + track.left) // 2, rect.centery)))
+
+
+def close_dialog_rects(width, height, scale):
+    """Dialog box, Cancel and Close buttons for the close confirmation."""
+    import pygame
+    box = pygame.Rect(0, 0, int(640 * scale), int(330 * scale))
+    box.center = (width // 2, height // 2)
+    pad = int(30 * scale)
+    button_w, button_h = (box.width - 3 * pad) // 2, int(100 * scale)
+    cancel = pygame.Rect(box.left + pad, box.bottom - pad - button_h, button_w, button_h)
+    confirm = pygame.Rect(cancel.right + pad, cancel.top, button_w, button_h)
+    return box, cancel, confirm
+
+
+def draw_close_dialog(screen, rects, fonts, scale):
+    """Dimmed screen with a white box: Cancel (left) and a red Close (right)."""
+    import pygame
+    box, cancel, confirm = rects
+    title_font, body_font = fonts
+    border = max(3, int(5 * scale))
+    shade = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+    shade.fill((0, 0, 0, 170))
+    screen.blit(shade, (0, 0))
+    pygame.draw.rect(screen, PAPER, box, border_radius=16)
+    pygame.draw.rect(screen, INK, box, width=border, border_radius=16)
+    y = box.top + int(28 * scale)
+    for font, text in ((title_font, "Close the Flock screen?"),
+                       (body_font, "Speech, camera and GPS keep running."),
+                       (body_font, "Tap Start Flock to open this screen again.")):
+        label = font.render(text, True, INK)
+        screen.blit(label, label.get_rect(midtop=(box.centerx, y)))
+        y += font.get_linesize() + int(6 * scale)
+    for rect, fill, text, colour in ((cancel, PAPER, "Cancel", INK),
+                                     (confirm, CLOSE_RED, "Close", PAPER)):
+        pygame.draw.rect(screen, fill, rect, border_radius=12)
+        pygame.draw.rect(screen, INK, rect, width=border, border_radius=12)
+        label = title_font.render(text, True, colour)
+        screen.blit(label, label.get_rect(center=rect.center))
+
+
 def send_trigger(client, event):
     if event not in {item[0] for item in EVENTS}:
         raise ValueError(f"Unknown speech event: {event}")
@@ -380,6 +493,7 @@ def main():
     pygame.init()
     preview = None
     street_map = None
+    zone = None
     try:
         screen = pygame.display.set_mode(
             (1024, 600) if args.windowed else (0, 0),
@@ -402,19 +516,24 @@ def main():
                    for i in range(4)]
         close = pygame.Rect(width - margin - int(100 * scale), margin,
                             int(100 * scale), int(50 * scale))
-        title_font = pygame.font.Font(None, max(18, int(36 * scale)))
-        body_font = pygame.font.Font(None, max(12, int(23 * scale)))
-        small_font = pygame.font.Font(None, max(12, int(21 * scale)))
-        map_font = pygame.font.Font(None, max(11, int(17 * scale)))
+        zone_rect = pygame.Rect(close.left - margin - int(250 * scale), margin,
+                                int(250 * scale), close.height)
+        # Larger than a desk UI: the screen is read at arm's length in sunlight.
+        zone_font = pygame.font.Font(None, max(16, int(34 * scale)))
+        title_font = pygame.font.Font(None, max(20, int(44 * scale)))
+        body_font = pygame.font.Font(None, max(14, int(28 * scale)))
+        small_font = pygame.font.Font(None, max(13, int(25 * scale)))
+        map_font = pygame.font.Font(None, max(12, int(20 * scale)))
+        border = max(3, int(4 * scale))
         gps = GPSLogReader(args.gps_log)
         street_map = OfflineStreetMap(args.map_file)
         # Fit all sentence labels into the narrower touchscreen buttons once.
         button_text = []
         for _, title, phrases, _ in EVENTS:
-            size = max(10, int(26 * scale))
+            size = max(10, int(34 * scale))
             while True:
                 heading = pygame.font.Font(None, size)
-                body = pygame.font.Font(None, max(9, int(size * 0.78)))
+                body = pygame.font.Font(None, max(9, int(size * 0.8)))
                 lines = [(heading, line) for line in wrapped_lines(title, heading, cell_w - 2 * margin)]
                 for phrase in phrases:
                     lines.extend((body, line) for line in wrapped_lines(phrase, body, cell_w - 2 * margin))
@@ -423,17 +542,22 @@ def main():
                 size -= 1
             button_text.append(lines)
         preview = CameraPreview(args.camera_url)
+        zone = FlockZoneToggle(client)
         decoded_stamp, camera_image = None, None
         status = "Tap a category to speak. Each tap replaces current speech."
         selected, flash_until = None, 0.0
+        dialog = close_dialog_rects(width, height, scale)
+        confirm_until = None  # set while the close confirmation is open
         clock = pygame.time.Clock()
         running = True
 
         while running:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT or (
-                        event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    # Escape opens the same confirmation; Escape again cancels it.
+                    confirm_until = None if confirm_until else time.monotonic() + CLOSE_CONFIRM_TIMEOUT
                 position = None
                 if event.type == pygame.FINGERDOWN:
                     position = (int(event.x * width), int(event.y * height))
@@ -443,8 +567,27 @@ def main():
                         position = event.pos
                 if position is None:
                     continue
+                if confirm_until is not None:
+                    # While the confirmation is open nothing else reacts to taps.
+                    if dialog[2].collidepoint(position):
+                        running = False
+                    else:
+                        confirm_until = None
+                        status = "Close cancelled."
+                    continue
                 if close.collidepoint(position):
-                    running = False
+                    confirm_until = time.monotonic() + CLOSE_CONFIRM_TIMEOUT
+                    continue
+                if zone_rect.collidepoint(position):
+                    try:
+                        zone.toggle()
+                        status = (("FLOCK ON: inside a Flock camera zone, a person plays the "
+                                   "surveilled-area speech" if zone.on else
+                                   "FLOCK OFF: outside every Flock camera zone, a person plays "
+                                   "the person speech") + f" | {time.strftime('%H:%M:%S')}")
+                    except OSError as error:
+                        status = f"Could not send FLOCK {'ON' if zone.on else 'OFF'}: {error}"
+                    print(status, flush=True)
                     continue
                 for index, rect in enumerate(buttons):
                     if rect.collidepoint(position):
@@ -458,19 +601,22 @@ def main():
                         print(status, flush=True)
                         break
 
-            screen.fill((16, 22, 30))
-            screen.blit(title_font.render("BIKES / FLOCKING", True, "white"), (margin, margin))
+            screen.fill(PAPER)
+            screen.blit(title_font.render("BIKES / FLOCKING", True, INK), (margin, margin))
             endpoint = f"Speech controls   |   {args.osc_host}:{args.osc_port}"
-            screen.blit(small_font.render(endpoint, True, (175, 190, 205)),
-                        (margin, int(59 * scale)))
-            pygame.draw.rect(screen, (55, 64, 76), close, border_radius=8)
-            label = body_font.render("Close", True, "white")
+            screen.blit(small_font.render(endpoint, True, SOFT_INK),
+                        (margin, int(60 * scale)))
+            pygame.draw.rect(screen, PAPER, close, border_radius=8)
+            pygame.draw.rect(screen, INK, close, width=border, border_radius=8)
+            label = body_font.render("Close", True, INK)
             screen.blit(label, label.get_rect(center=close.center))
-            pygame.draw.rect(screen, (8, 12, 18), camera_rect, border_radius=14)
+            zone.heartbeat()
+            draw_zone_toggle(screen, zone_rect, zone.on, zone_font, scale)
+            pygame.draw.rect(screen, INK, camera_rect, border_radius=14)
             jpeg, stamp, camera_status = preview.snapshot()
             fresh = jpeg is not None and time.monotonic() - stamp < 3
             # Fill the panel, preserving aspect ratio with a centered crop.
-            video_rect = camera_rect.inflate(-4, -4)
+            video_rect = camera_rect.inflate(-2 * border, -2 * border)
             if fresh and stamp != decoded_stamp:
                 try:
                     frame = pygame.image.load(io.BytesIO(jpeg), "camera.jpg").convert()
@@ -491,32 +637,41 @@ def main():
                     camera_status = "Camera feed stalled - waiting"
                 help_text = "No video. Enable --stream-port 8000."
                 for i, line in enumerate(wrapped_lines(help_text, small_font, video_rect.width)):
-                    screen.blit(small_font.render(line, True, (175, 190, 205)),
-                                (video_rect.left, video_rect.top + i * small_font.get_linesize()))
+                    screen.blit(small_font.render(line, True, PAPER),
+                                (video_rect.left + 6, video_rect.bottom - (i + 1) * small_font.get_linesize() - 6))
             for i, line in enumerate(wrapped_lines(camera_status, small_font, camera_rect.width - 2 * margin)):
-                screen.blit(small_font.render(line, True, (175, 220, 205), (8, 12, 18)),
+                screen.blit(small_font.render(f" {line} ", True, INK, WARN_YELLOW),
                             (camera_rect.left + 8, camera_rect.top + 6 + i * small_font.get_linesize()))
             gps.poll()
             draw_location(screen, map_rect, gps, street_map, map_font, scale)
             for index, (key, title, phrases, color) in enumerate(EVENTS):
                 rect = buttons[index]
                 active = selected == index and time.monotonic() < flash_until
-                fill = tuple(min(255, c + 45) for c in color) if active else color
-                pygame.draw.rect(screen, fill, rect, border_radius=14)
+                # A tap flashes the button inverted (black), which reads even in glare.
+                pygame.draw.rect(screen, INK if active else color, rect, border_radius=14)
+                pygame.draw.rect(screen, INK, rect, width=border, border_radius=14)
                 lines = button_text[index]
                 total = sum(font.get_linesize() for font, _ in lines)
                 y = rect.centery - total // 2
                 for font, line in lines:
-                    label = font.render(line, True, "white")
+                    label = font.render(line, True, color if active else INK)
                     screen.blit(label, (rect.centerx - label.get_width() // 2, y))
                     y += font.get_linesize()
             # Sent means UDP was sent; it is not a playback acknowledgement.
             for i, line in enumerate(wrapped_lines(status, small_font, width - 2 * margin)[:2]):
-                screen.blit(small_font.render(line, True, (210, 220, 230)),
+                screen.blit(small_font.render(line, True, INK),
                             (margin, height - bottom + int(10 * scale) + i * small_font.get_linesize()))
+            if confirm_until is not None:
+                if time.monotonic() > confirm_until:
+                    confirm_until = None
+                    status = "Close cancelled."
+                else:
+                    draw_close_dialog(screen, dialog, (title_font, body_font), scale)
             pygame.display.flip()
             clock.tick(30)
     finally:
+        if zone is not None:
+            zone.close()  # nobody can switch the zone off once the GUI is gone
         if preview is not None:
             preview.close()
         if street_map is not None:
