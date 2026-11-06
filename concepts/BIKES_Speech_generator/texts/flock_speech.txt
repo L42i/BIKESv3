@@ -1,5 +1,7 @@
 Person detected.
 
+The bikes are watching you.
+
 You are entering a surveilled area.
 
 Please dismount your bike. You are being monitored.

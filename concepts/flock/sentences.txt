@@ -1,7 +1,9 @@
 1|person|Person detected.
-2|monitored|You are entering a surveilled area.
-3|monitored|Please dismount your bike. You are being monitored.
-4|car|Vehicle detected.
-5|car|Your license plate has been recorded.
-6|monitored|This is a surveilled area.
-7|flock|A Flock camera is watching this street.
+2|person|The bikes are watching you.
+3|monitored|You are entering a surveilled area.
+4|monitored|Please dismount your bike. You are being monitored.
+5|car|Vehicle detected.
+6|car|Your license plate has been recorded.
+5|vehicle|Vehicle detected.
+7|monitored|This is a surveilled area.
+8|flock|A Flock camera is watching this street.

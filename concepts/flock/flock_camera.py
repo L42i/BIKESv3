@@ -5,7 +5,8 @@ Reuses the detector setup and tracker from ../camera/camera_osc.py. Sends one in
 per address, 1 = present, 0 = absent, on every change and again every 2 s:
 
   /object/detected/person  1|0
-  /object/detected/car     1|0
+  /object/detected/car      1|0   car, truck or bus (has a license plate)
+  /object/detected/vehicle  1|0   motorcycle, bicycle, train, boat or airplane
 
 Only one process can open the IMX500, so stop camera_osc.py before starting this.
 Exits cleanly if no IMX500 camera is attached.
@@ -43,7 +44,7 @@ def parse_args():
     ap.add_argument("--osc-port", type=int, default=57120)
     ap.add_argument("--send", action="append", default=[], metavar="HOST:PORT",
                     help="also send every message here, e.g. a laptop 10.10.10.50:57120 (repeatable)")
-    ap.add_argument("--class-map", default="person:person,car:car,truck:car,bus:car,motorcycle:car",
+    ap.add_argument("--class-map", default="person:person,car:car,truck:car,bus:car,motorcycle:vehicle,bicycle:vehicle,train:vehicle,boat:vehicle,airplane:vehicle",
                     help="detector label -> address under /object/detected/")
     ap.add_argument("--threshold", type=float, default=0.55, help="minimum detection score")
     ap.add_argument("--confirm-hits", type=int, default=3, help="detections needed to confirm an object")
